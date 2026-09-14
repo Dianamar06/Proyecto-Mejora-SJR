@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const authRoutes = require('./routes/authRoutes');
 
 // Inicializar la aplicación de Express
 const app = express();
@@ -9,13 +10,16 @@ const app = express();
 app.use(cors()); // Habilita peticiones cruzadas desde cualquier origen
 app.use(express.json()); // Permite recibir y parsear JSON en el body de las peticiones
 
-// Endpoint GET de prueba
+// Endpoint GET de prueba original
 app.get('/', (req, res) => {
   res.status(200).json({
     estado: 'ok',
     mensaje: 'API Funcional'
   });
 });
+
+// Rutas de la API
+app.use('/api/auth', authRoutes);
 
 // Configuración del puerto
 const PORT = process.env.PORT || 3000;
