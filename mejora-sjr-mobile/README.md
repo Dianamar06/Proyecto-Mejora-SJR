@@ -1,56 +1,84 @@
-# Welcome to your Expo app 👋
+﻿# Mejora SJR — Aplicación móvil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## HU-05: Inicialización y ruteador base
 
-## Get started
+Aplicación React Native con Expo SDK 57, TypeScript estricto y React Navigation Native Stack.
 
-1. Install dependencies
+La [guía del frontend móvil en el README principal](../README.md#frontend-móvil-estructura-y-funcionamiento)
+detalla la responsabilidad de cada carpeta, el flujo MVVM y la futura inyección de servicios.
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+index.ts                         Registro de la aplicación con Expo
+App.tsx                          Proveedor de áreas seguras y composición raíz
+src/
+  navigation/AppRouter.tsx       Stack tipado y adaptadores de pantallas
+  views/LoginView.tsx            Vista de acceso
+  views/HomeView.tsx             Vista de inicio
+  viewModels/useLoginViewModel.ts
+  viewModels/useHomeViewModel.ts
+  models/                       Tipos y modelos de dominio
+  services/
+    contracts/                  Interfaces consumidas por los ViewModels
+    api/                        Implementaciones HTTP
+    mocks/                      Implementaciones simuladas
+  providers/                    Contextos e inyección de dependencias
+  components/                   UI reutilizable con props mínimas
+  constants/                    Valores compartidos
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Las carpetas pendientes de implementación contienen únicamente `.gitkeep` para
+conservar su estructura en Git. No se crean modelos, servicios ni proveedores ficticios.
 
-### Other setup steps
+### Navegación
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+La entrada es `index.ts`, que registra `App.tsx`. `AppRouter.tsx` contiene el único
+`NavigationContainer` y un Stack con `Login` como ruta inicial y `Home` como segunda ruta.
+Las rutas no reciben parámetros. Los adaptadores conectan las acciones de los ViewModels
+con React Navigation; las vistas reciben únicamente callbacks.
 
-## Learn more
+`Explorar inicio` navega a Home. `Volver al acceso` regresa al inicio del Stack sin
+agregar pantallas duplicadas. También se puede regresar usando el encabezado del Stack
+o el botón Atrás de Android.
 
-To learn more about developing your project with Expo, look at the following resources:
+Esta historia solo implementa navegación: no autentica, no crea sesiones y no consulta
+una API. Los ViewModels son deliberadamente mínimos hasta incorporar casos de uso.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Se reemplazaron las rutas de ejemplo de `src/app` y las pestañas de Expo Router.
+Se retiraron la dependencia, el plugin y los componentes vinculados a Expo Router,
+así como el script de reinicio que generaba rutas para ese sistema.
+Se retiraron los componentes, hooks, estilos y constantes de ejemplo sin uso.
+El estado de presentación de las nuevas funcionalidades vivirá en `viewModels/`.
+La salida web usa `single`, compatible con esta entrada personalizada.
 
-## Join the community
+### Reglas de arquitectura
 
-Join our community of developers creating universal apps.
+- `views/`: UI declarativa, props mínimas y callbacks; sin HTTP ni estado complejo.
+- `viewModels/`: custom hooks para estado, validaciones y acciones. Sin fetch ni axios.
+- `services/`: acceso a la API REST mediante implementaciones de contratos.
+- Los servicios se inyectarán por parámetro o contexto, dependiendo de interfaces.
+- El backend será por capas y utilizará Microsoft SQL Server. El móvil no se conectará
+  directamente a la base de datos. Las referencias anteriores a CQRS y Firebase están desactualizadas.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Desarrollo y validación
+
+Usar una versión de Node compatible con Expo SDK 57 (mínimo 22.13).
+
+```bash
+npm install
+npm start
+npm run android
+npm run typecheck
+npx expo export --platform all
+```
+
+Comprobación manual en dispositivo o emulador:
+
+1. Abrir la app: debe mostrar la vista de acceso, sin las pestañas Home/Explore de Expo.
+2. Pulsar `Explorar inicio`: debe mostrar Home con el título `Mejora SJR` en el encabezado.
+3. Pulsar `Volver al acceso`: debe mostrar Login.
+4. Repetir usando el botón Atrás del encabezado y, en Android, el botón del sistema.
+5. Repetir el recorrido y confirmar que no se acumulan pantallas.
+
+Referencias: [Expo SDK 57](https://docs.expo.dev/versions/v57.0.0/),
+[registro de la raíz](https://docs.expo.dev/versions/v57.0.0/sdk/expo/#registerrootcomponent),
+[React Navigation Native Stack](https://reactnavigation.org/docs/native-stack-navigator/).

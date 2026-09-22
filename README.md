@@ -2,6 +2,109 @@
 
 **Mejora San Juan del Río** es un sistema integral compuesto por una Aplicación Móvil para ciudadanos y un Panel Administrativo Web para funcionarios del ayuntamiento, respaldado por un servidor escalable.
 
+## Arquitectura vigente
+
+El proyecto se reinició con estas decisiones: frontend móvil con **React Native, MVVM, SOLID e inyección de dependencias**, backend con **arquitectura por capas** y **Microsoft SQL Server** como base de datos. La comunicación entre clientes y backend será mediante una **API RESTful**. El móvil no se conectará directamente a SQL Server.
+
+Firebase y CQRS no forman parte de la arquitectura vigente. La navegación móvil utiliza **React Navigation Native Stack**, con un `AppRouter.tsx`; ya no utiliza Expo Router ni rutas basadas en archivos.
+
+## Frontend móvil: estructura y funcionamiento
+
+El código móvil vive en [`mejora-sjr-mobile/`](./mejora-sjr-mobile/). La HU-05 implementa la entrada de la aplicación y el recorrido entre acceso e inicio. Para ejecutar el proyecto y consultar los pasos de validación, ver el [README móvil](./mejora-sjr-mobile/README.md).
+
+### Estructura de carpetas
+
+```text
+mejora-sjr-mobile/
+├── index.ts                         # Registra la aplicación con Expo
+├── App.tsx                          # Composición raíz y proveedores generales
+├── app.json                         # Configuración de Expo, iconos y splash
+├── assets/                          # Recursos estáticos de la aplicación
+└── src/
+    ├── navigation/
+    │   └── AppRouter.tsx            # Stack, tipos de rutas y adaptadores
+    ├── views/
+    │   ├── LoginView.tsx            # Interfaz de acceso
+    │   └── HomeView.tsx             # Interfaz de inicio
+    ├── viewModels/
+    │   ├── useLoginViewModel.ts     # Acciones de la pantalla de acceso
+    │   └── useHomeViewModel.ts      # Acciones de la pantalla de inicio
+    ├── models/                     # Tipos y modelos de dominio
+    ├── services/
+    │   ├── contracts/              # Interfaces de servicios
+    │   ├── api/                    # Implementaciones HTTP
+    │   └── mocks/                  # Implementaciones simuladas
+    ├── providers/                  # Contextos e inyección de dependencias
+    ├── components/                 # UI reutilizable
+    └── constants/                  # Valores compartidos
+```
+
+Las carpetas todavía sin implementación contienen `.gitkeep` para que Git conserve la estructura. Su existencia no significa que ya haya autenticación, servicios HTTP o modelos de negocio implementados.
+
+### Responsabilidad de cada carpeta
+
+| Carpeta | Qué contendrá y cómo se utilizará | Límites |
+|---|---|---|
+| `navigation/` | Define las rutas, sus parámetros y el Stack. Sus adaptadores conectan cada ViewModel con su Vista y traducen callbacks a acciones de navegación. Actualmente esto vive en `AppRouter.tsx`. | No valida formularios ni realiza peticiones. No entrega el objeto completo de navegación a la Vista. |
+| `views/` | Pantallas completas que dibujan UI nativa a partir de props y emiten eventos mediante callbacks. Por ejemplo, `LoginView` recibe `onContinue`. | Sin llamadas HTTP, lógica de negocio ni estado complejo. El estado y los efectos se delegan al ViewModel. |
+| `viewModels/` | Custom hooks que administrarán campos, validaciones de presentación, carga, errores y acciones. Exponen únicamente los datos y operaciones necesarios para la UI. | No dibujan JSX ni importan `fetch`, `axios` o implementaciones concretas de servicios. |
+| `models/` | Tipos y modelos de dominio, como un futuro `Reporte` o `Usuario`. Permiten compartir la forma de los datos entre servicios y ViewModels. | No contienen componentes, hooks, peticiones ni conexiones a la base de datos. No representan obligatoriamente las tablas SQL. |
+| `services/contracts/` | Interfaces pequeñas según la capacidad requerida, por ejemplo un futuro contrato de consulta de reportes. Son las abstracciones de las que dependerán los ViewModels. | No contienen implementaciones HTTP ni obligan a consumir métodos ajenos al caso de uso. |
+| `services/api/` | Implementaciones de los contratos que llaman a la API REST, procesan respuestas y adaptan datos o errores para el móvil. | Aquí se encapsula la librería HTTP. No manejan estado visual ni navegación. |
+| `services/mocks/` | Implementaciones simuladas de los mismos contratos, con datos controlados para desarrollar y probar sin depender del servidor. | Deben respetar el contrato y ser sustituibles por la implementación real. No se simulan peticiones dentro de las Vistas. |
+| `providers/` | Proveedores de contexto que suministrarán servicios a los adaptadores o ViewModels. La composición raíz seleccionará las implementaciones concretas. | No concentran la lógica de todas las pantallas ni crean una nueva instancia del servicio en cada render. |
+| `components/` | Piezas visuales reutilizables, como botones, campos controlados o tarjetas. Las Vistas las combinarán para construir pantallas. | Reciben props mínimas: por ejemplo, `title`, `disabled` y `onPress`; no un usuario, servicio o ViewModel completo si no lo necesitan. |
+| `constants/` | Valores compartidos realmente utilizados, como colores, espaciados o límites de presentación. | Sin estado mutable, lógica de negocio ni credenciales. Las reglas del servidor no se sustituyen por constantes del cliente. |
+
+No existe una carpeta genérica `hooks/` en esta base: los hooks que gestionan estado y acciones de presentación pertenecen a `viewModels/`. `navigation/` sustituye la responsabilidad de navegación que antes tenía `src/app/` con Expo Router.
+
+### Cómo arranca y navega la aplicación actual
+
+1. `package.json` señala a `index.ts` como entrada. Este registra `App` mediante Expo.
+2. `App.tsx` monta el proveedor de áreas seguras, la barra de estado y `AppRouter`.
+3. `AppRouter.tsx` contiene un único `NavigationContainer` y un Stack tipado con `Login` y `Home`, ambos sin parámetros. La ruta inicial es `Login`.
+4. El adaptador `LoginScreen` conecta `useLoginViewModel` con `LoginView`, pasando únicamente `onContinue`.
+5. Al pulsar **Explorar inicio**, el callback ejecuta `navigation.navigate('Home')`.
+6. En Home, **Volver al acceso** ejecuta el callback del ViewModel, conectado a `navigation.popToTop()`. También está disponible el retroceso del Stack.
+
+Los ViewModels actuales solo exponen callbacks: todavía no gestionan credenciales, sesiones ni datos remotos. Acceder a Home en esta demostración no significa que exista un usuario autenticado.
+
+### Cómo funcionará MVVM con servicios
+
+El siguiente flujo describe la integración prevista, todavía pendiente de implementar:
+
+```mermaid
+flowchart LR
+    Root["App / composición raíz"] -->|Selecciona implementación| Provider["Provider de servicios"]
+    Provider -->|Inyecta por contrato| VM["ViewModel"]
+    View["Vista y componentes"] -->|Eventos mediante callbacks| VM
+    VM -->|Estado mediante props del adaptador| View
+    VM -->|Operaciones del contrato| Service["Servicio API o mock"]
+    Service -->|HTTP, solo implementación API| API["API REST / backend por capas"]
+    API --> SQL[("Microsoft SQL Server")]
+```
+
+Por ejemplo, al implementar una consulta de reportes, el ViewModel activará el estado de carga y llamará al servicio inyectado. El servicio devolverá los datos o un error; el ViewModel actualizará el estado y el adaptador entregará a la Vista las props necesarias para mostrar la lista, el indicador de carga o el mensaje de error. El backend conservará la responsabilidad de autorización y validación de negocio.
+
+La inyección podrá realizarse por parámetro o contexto. Un parámetro llamado `apiService` deberá estar tipado con una **interfaz**, no con una clase concreta. La implementación se creará en la composición raíz o en un proveedor y podrá cambiar entre API y mock sin modificar la Vista ni el ViewModel. No es obligatorio crear un proveedor para una dependencia que se resuelva de forma sencilla por parámetro.
+
+### Reglas para añadir una funcionalidad
+
+1. Definir los tipos necesarios en `models/` y, si requiere datos externos, un contrato específico en `services/contracts/`.
+2. Implementar el contrato en `services/mocks/` o `services/api/`, según la etapa de integración.
+3. Crear el hook en `viewModels/` e inyectarle el servicio. Mantener ahí el estado, las validaciones de presentación y las acciones.
+4. Construir la Vista en `views/` con props explícitas y reutilizar piezas de `components/` cuando corresponda.
+5. Conectar Vista, ViewModel y dependencias mediante el adaptador, y registrar la ruta en `navigation/` si es una pantalla nueva.
+6. Comprobar tipos, estados de carga y error, navegación y sustitución del servicio por un mock cuando aplique.
+
+Estas reglas aplican **SRP** al separar interfaz, estado y acceso a datos; **ISP** al mantener props y contratos pequeños; y **DIP** al hacer que los ViewModels dependan de abstracciones inyectadas. No se crean servicios o modelos ficticios para una pantalla que solo necesita navegación.
+
+---
+
+## Archivo histórico de la versión anterior
+
+> El contenido siguiente se conserva como antecedente del proyecto previo al reinicio. Sus referencias a Firebase, Firestore, Expo Router, archivos retirados y sprints anteriores **no describen la implementación ni las decisiones vigentes**. Para el frontend móvil actual, utilizar la sección anterior y el README móvil enlazado.
+
 ---
 
 ## 🚀 Documentación del Sprint 1: Inicialización y Base del Sistema
