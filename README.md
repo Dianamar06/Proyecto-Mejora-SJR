@@ -25,21 +25,24 @@ mejora-sjr-mobile/
     │   └── AppRouter.tsx            # Stack, tipos de rutas y adaptadores
     ├── views/
     │   ├── LoginView.tsx            # Interfaz de acceso
-    │   └── HomeView.tsx             # Interfaz de inicio
+    │   ├── HomeView.tsx             # Interfaz de inicio
+    │   └── ReportesView.tsx         # Lista, carga, error y reintento
     ├── viewModels/
     │   ├── useLoginViewModel.ts     # Acciones de la pantalla de acceso
-    │   └── useHomeViewModel.ts      # Acciones de la pantalla de inicio
+    │   ├── useHomeViewModel.ts      # Acciones de la pantalla de inicio
+    │   └── useReportesViewModel.ts  # Estado y consulta de reportes
     ├── models/                     # Tipos y modelos de dominio
     ├── services/
     │   ├── contracts/              # Interfaces de servicios
     │   ├── api/                    # Implementaciones HTTP
-    │   └── mocks/                  # Implementaciones simuladas
+    │   ├── mocks/                  # Implementaciones simuladas
+    │   └── storage/                # Implementación de almacenamiento de tokens
     ├── providers/                  # Contextos e inyección de dependencias
     ├── components/                 # UI reutilizable
     └── constants/                  # Valores compartidos
 ```
 
-Las carpetas todavía sin implementación contienen `.gitkeep` para que Git conserve la estructura. Su existencia no significa que ya haya autenticación, servicios HTTP o modelos de negocio implementados.
+Las carpetas todavía sin implementación contienen `.gitkeep` para que Git conserve la estructura. Ya existen servicios HTTP y un modelo mínimo de reporte; la autenticación sigue pendiente.
 
 ### Responsabilidad de cada carpeta
 
@@ -62,16 +65,26 @@ No existe una carpeta genérica `hooks/` en esta base: los hooks que gestionan e
 
 1. `package.json` señala a `index.ts` como entrada. Este registra `App` mediante Expo.
 2. `App.tsx` monta el proveedor de áreas seguras, la barra de estado y `AppRouter`.
-3. `AppRouter.tsx` contiene un único `NavigationContainer` y un Stack tipado con `Login` y `Home`, ambos sin parámetros. La ruta inicial es `Login`.
+3. `AppRouter.tsx` contiene un único `NavigationContainer` y un Stack tipado con `Login`, `Home` y `Reportes`, sin parámetros de ruta. La ruta inicial es `Login`.
 4. El adaptador `LoginScreen` conecta `useLoginViewModel` con `LoginView`, pasando únicamente `onContinue`.
 5. Al pulsar **Explorar inicio**, el callback ejecuta `navigation.navigate('Home')`.
 6. En Home, **Volver al acceso** ejecuta el callback del ViewModel, conectado a `navigation.popToTop()`. También está disponible el retroceso del Stack.
 
-Los ViewModels actuales solo exponen callbacks: todavía no gestionan credenciales, sesiones ni datos remotos. Acceder a Home en esta demostración no significa que exista un usuario autenticado.
+Los ViewModels de Login y Home solo exponen callbacks. El nuevo `useReportesViewModel`
+consulta `/reportes` mediante un servicio HTTP inyectado por parámetro y expone carga,
+datos, error y recarga. Desde Home se abre la ruta `Reportes`; su adaptador pasa props
+explícitas a `ReportesView`, sin entregarle servicios. `App.tsx` crea la instancia real
+de `ApiService`. Acceder a Home no significa que exista un usuario autenticado.
+
+El formato `{ success, data }` corresponde al controlador actual del backend. El modelo
+`Reporte` respeta el contrato confirmado (`IdReporte`, `Titulo`, `Descripcion`, ubicación,
+IDs y fechas). El ViewModel lo transforma a `id`, `titulo`, `descripcion` y `estado` para
+la Vista. Ver [contrato y pruebas del listado](./mejora-sjr-mobile/README.md#consulta-de-reportes-con-mvvm-e-inyección-por-parámetro).
 
 ### Cómo funcionará MVVM con servicios
 
-El siguiente flujo describe la integración prevista, todavía pendiente de implementar:
+El siguiente flujo describe la organización de los servicios. El listado de reportes
+ya usa inyección directa desde la composición raíz; un Provider de contexto es opcional:
 
 ```mermaid
 flowchart LR

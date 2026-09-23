@@ -4,6 +4,9 @@ Esta carpeta contendrá los contratos y las implementaciones de acceso a la API 
 Los ViewModels recibirán servicios por parámetro o contexto, tipados mediante interfaces.
 Solo las implementaciones de servicios podrán utilizar fetch o axios.
 
-HU-05 no requiere peticiones ni autenticación; no se crea un servicio ficticio para navegar.
+La consulta de reportes utiliza el contrato existente `IApiService`, limitado a `get`
+mediante `Pick` en el ViewModel. `App.tsx` selecciona e inyecta `ApiService`;
+`ApiServiceMock` puede sustituirlo configurando `/reportes` con `{ success: true, data: [...] }`.
+El listado no implementa autenticación; utiliza el comportamiento de tokens del servicio existente.
 La app se comunicará con el backend por capas. Microsoft SQL Server será responsabilidad
 del backend y no tendrá conexión directa desde el móvil.

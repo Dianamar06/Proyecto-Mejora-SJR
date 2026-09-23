@@ -5,11 +5,11 @@ import { TokenStorage } from '../storage/TokenStorage';
 
 // Declaración segura de process.env para evitar errores de compilador en React Native/Expo sin @types/node
 declare const process: {
-  env?: {
+  env: {
     EXPO_PUBLIC_API_URL?: string;
     [key: string]: string | undefined;
   };
-} | undefined;
+};
 
 /**
  * Resuelve la URL base adecuada según la plataforma y el entorno de ejecución móvil.
@@ -18,8 +18,9 @@ declare const process: {
  * - Variable de entorno: EXPO_PUBLIC_API_URL si está definida.
  */
 function resolveDefaultBaseUrl(): string {
-  if (typeof process !== 'undefined' && process?.env?.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
+  const configuredUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (configuredUrl) {
+    return configuredUrl;
   }
 
   if (Platform.OS === 'android') {

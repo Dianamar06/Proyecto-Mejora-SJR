@@ -3,13 +3,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 type HomeViewProps = {
   onReturnToLogin: () => void;
+  onOpenReportes: () => void;
 };
 
-export function HomeView({ onReturnToLogin }: HomeViewProps) {
+export function HomeView({ onReturnToLogin, onOpenReportes }: HomeViewProps) {
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <Text accessibilityRole="header" style={styles.title}>Inicio</Text>
       <Text style={styles.description}>Aquí podrás crear y consultar tus reportes ciudadanos.</Text>
+      <Button title="Consultar reportes" onPress={onOpenReportes} color="#155E75" />
       <Button title="Volver al acceso" onPress={onReturnToLogin} color="#155E75" />
     </SafeAreaView>
   );
