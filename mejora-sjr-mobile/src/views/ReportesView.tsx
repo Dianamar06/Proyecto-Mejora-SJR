@@ -3,7 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 type ReportesViewProps = {
   isLoading: boolean;
-  reportes: readonly { id: string; titulo: string; descripcion: string; estado: string }[];
+  // ACTIALIZADO: Usando exactamente las llaves mapeadas desde el ViewModel
+  reportes: readonly { IdReporte: string; Titulo: string; Descripcion: string; NombreEstado: string }[];
   error: string | null;
   onReload: () => void;
 };
@@ -27,14 +28,14 @@ export function ReportesView({ isLoading, reportes, error, onReload }: ReportesV
           <Button title="Actualizar reportes" onPress={onReload} color="#155E75" />
           <FlatList
             data={reportes}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.IdReporte}
             contentContainerStyle={styles.list}
             ListEmptyComponent={<Text>No hay reportes disponibles.</Text>}
             renderItem={({ item }) => (
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>{item.titulo}</Text>
-                <Text style={styles.description}>{item.descripcion}</Text>
-                <Text style={styles.status}>Estado: {item.estado}</Text>
+                <Text style={styles.cardTitle}>{item.Titulo}</Text>
+                <Text style={styles.description}>{item.Descripcion}</Text>
+                <Text style={styles.status}>Estado: {item.NombreEstado}</Text>
               </View>
             )}
           />

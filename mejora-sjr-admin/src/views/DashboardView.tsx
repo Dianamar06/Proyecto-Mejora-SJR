@@ -1,28 +1,8 @@
 'use client';
 
-/**
- * @view DashboardView
- * Vista COMPLETAMENTE PASIVA (Dumb View) del Dashboard administrativo.
- *
- * ============================================================
- * PROHIBICIONES ABSOLUTAS (Contrato MVVM):
- * ✗ NO tiene useState propio de lógica de negocio
- * ✗ NO tiene useEffect
- * ✗ NO tiene llamadas fetch / axios / HTTP de ningún tipo
- * ✗ NO importa servicios concretos
- * ✗ NO toma decisiones de negocio
- *
- * RESPONSABILIDAD ÚNICA (SRP):
- * ✓ SOLO recibe props y las transforma en UI
- * ✓ Renderiza skeleton, error o contenido según los props recibidos
- * ============================================================
- */
-
 import type { DashboardResumen } from '@/services/contracts/IDashboardService';
 import { StatCard } from '@/components/StatCard';
 import { ReporteRow } from '@/components/ReporteRow';
-
-// ─── Props mínimas y exactas que esta Vista necesita (ISP) ───────────────
 
 interface DashboardViewProps {
   resumen: DashboardResumen | null;
@@ -30,7 +10,7 @@ interface DashboardViewProps {
   error: string | null;
 }
 
-// ─── Sub-componentes de estado visual ────────────────────────────────────
+// ─── Skeletons ──────────────────────────────────────────────────────────
 
 function SkeletonCard() {
   return (
@@ -45,7 +25,7 @@ function SkeletonCard() {
 function SkeletonRow() {
   return (
     <tr className="border-b border-white/5">
-      {[...Array(6)].map((_, i) => (
+      {[...Array(5)].map((_, i) => (
         <td key={i} className="px-3 py-3">
           <div className="h-3 animate-pulse rounded bg-white/5" style={{ width: `${60 + i * 10}%` }} />
         </td>
@@ -59,7 +39,6 @@ function SkeletonRow() {
 export function DashboardView({ resumen, isLoading, error }: DashboardViewProps) {
   return (
     <div className="min-h-screen bg-[#0B0F19] px-6 py-8 text-slate-100">
-      {/* ── Encabezado ─────────────────────────────────────────── */}
       <header className="mb-8">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold shadow-lg shadow-blue-600/30">
@@ -74,7 +53,6 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
         </div>
       </header>
 
-      {/* ── Error State ────────────────────────────────────────── */}
       {error && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           <span className="text-lg">⚠️</span>
@@ -82,7 +60,6 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
         </div>
       )}
 
-      {/* ── Tarjetas de Estadísticas ────────────────────────────── */}
       <section aria-label="Resumen de reportes" className="mb-8">
         <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-500">
           Resumen General
@@ -105,14 +82,14 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
                 bgAccentClass="bg-slate-400/10"
               />
               <StatCard
-                title="Pendientes"
-                value={resumen?.pendientes ?? 0}
+                title="Recibidos"
+                value={resumen?.pendientes ?? 0} 
                 icon="⏳"
                 colorClass="text-amber-400"
                 bgAccentClass="bg-amber-400/10"
               />
               <StatCard
-                title="En Proceso"
+                title="En Progreso"
                 value={resumen?.enProceso ?? 0}
                 icon="⚙️"
                 colorClass="text-violet-400"
@@ -130,7 +107,6 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
         </div>
       </section>
 
-      {/* ── Tabla de Reportes Recientes ─────────────────────────── */}
       <section aria-label="Reportes recientes">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
@@ -148,11 +124,11 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5 bg-white/[0.02]">
+                  {/* Se eliminó la columna inventada de Prioridad */}
                   <th className="py-3 pl-4 pr-3 text-xs font-semibold text-slate-500">ID</th>
                   <th className="px-3 py-3 text-xs font-semibold text-slate-500">Descripción</th>
                   <th className="px-3 py-3 text-xs font-semibold text-slate-500">Categoría</th>
                   <th className="px-3 py-3 text-xs font-semibold text-slate-500">Estado</th>
-                  <th className="px-3 py-3 text-xs font-semibold text-slate-500">Prioridad</th>
                   <th className="px-3 py-3 pr-4 text-xs font-semibold text-slate-500">Fecha</th>
                 </tr>
               </thead>
@@ -167,20 +143,19 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
                   </>
                 ) : resumen?.reportesRecientes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-sm text-slate-500">
+                    <td colSpan={5} className="py-12 text-center text-sm text-slate-500">
                       No hay reportes recientes.
                     </td>
                   </tr>
                 ) : (
                   resumen?.reportesRecientes.map((reporte) => (
                     <ReporteRow
-                      key={reporte.id}
-                      id={reporte.id}
-                      descripcion={reporte.descripcion}
-                      estado={reporte.estado}
-                      prioridad={reporte.prioridad}
-                      categoria={reporte.categoria}
-                      fechaCreacion={reporte.fechaCreacion}
+                      key={reporte.IdReporte}
+                      IdReporte={reporte.IdReporte}
+                      Descripcion={reporte.Descripcion}
+                      IdEstado={reporte.IdEstado}
+                      IdCategoria={reporte.IdCategoria}
+                      FechaCreacion={reporte.FechaCreacion}
                     />
                   ))
                 )}
@@ -190,7 +165,6 @@ export function DashboardView({ resumen, isLoading, error }: DashboardViewProps)
         </div>
       </section>
 
-      {/* ── Footer ─────────────────────────────────────────────── */}
       <footer className="mt-8 text-center text-xs text-slate-600">
         Mejora SJR · Municipio de San Juan del Río, Querétaro · {new Date().getFullYear()}
       </footer>
