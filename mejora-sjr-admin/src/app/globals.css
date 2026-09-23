@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   MEJORA SJR — Design Tokens · Panel Administrativo
+   Paleta institucional: Azul marino profundo + Azul eléctrico
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* Fondos */
+  --sjr-bg-base:      #0B0F19;   /* Fondo principal — casi negro azulado */
+  --sjr-bg-surface:   #111827;   /* Superficies de tarjetas y tablas */
+  --sjr-bg-elevated:  #1C2333;   /* Elementos elevados (dropdown, modal) */
+
+  /* Acento institucional */
+  --sjr-accent-primary:   #3B82F6;   /* Azul municipal */
+  --sjr-accent-hover:     #2563EB;   /* Hover azul */
+  --sjr-accent-glow:      rgba(59, 130, 246, 0.15);
+
+  /* Texto */
+  --sjr-text-primary:   #F1F5F9;   /* Texto principal */
+  --sjr-text-secondary: #94A3B8;   /* Texto secundario */
+  --sjr-text-muted:     #475569;   /* Texto apagado */
+
+  /* Estados semánticos */
+  --sjr-success:  #10B981;
+  --sjr-warning:  #F59E0B;
+  --sjr-danger:   #EF4444;
+  --sjr-info:     #8B5CF6;
+
+  /* Bordes */
+  --sjr-border:   rgba(255, 255, 255, 0.05);
+}
+
+@theme inline {
+  --color-background: var(--sjr-bg-base);
+  --color-foreground: var(--sjr-text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── Reset y base global ──────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--sjr-bg-base);
+  color: var(--sjr-text-primary);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  line-height: 1.6;
+}
+
+/* ── Scrollbar personalizada (dark) ──────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sjr-bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sjr-bg-elevated);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sjr-accent-primary);
+}
+
+/* ── Selección de texto ───────────────────────────────────── */
+
+::selection {
+  background-color: var(--sjr-accent-glow);
+  color: var(--sjr-text-primary);
+}
+
