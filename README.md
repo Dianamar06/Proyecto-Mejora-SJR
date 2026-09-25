@@ -462,3 +462,7 @@ Almacena cada incidencia urbana enviada por un ciudadano. El `documentId` es gen
 3. **Soft delete**: No se elimina físicamente ningún documento. Para usuarios, usar `activo: false`; para reportes, usar `estado: "rechazado"`.
 4. **Auditoría**: Los campos `fechaCreacion` y `fechaActualizacion` deben ser escritos exclusivamente desde el backend con `FieldValue.serverTimestamp()`, nunca desde el cliente.
 5. **Paginación**: Usar `startAfter(lastDocument)` + `limit(n)` para todas las consultas paginadas sobre `reportes`.
+
+## Validación de inicio de sesión
+
+Se agregó una validación básica para comprobar los datos ingresados por el usuario.
