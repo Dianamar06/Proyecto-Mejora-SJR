@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { IApiService, ApiError } from '../services/contracts/IApiService';
 import { ApiService } from '../services/api/apiService';
+import { validateLoginInput } from '../utils/loginValidation';
 
 /**
  * ViewModel para la pantalla de inicio de sesión.
@@ -27,9 +28,10 @@ export function useLoginViewModel(
    * Ejecuta el inicio de sesión contra la API usando la abstracción inyectada.
    */
   const handleLogin = async () => {
-    // 1. Validaciones de presentación en el ViewModel
-    if (!email.trim() || !password.trim()) {
-      setErrorMessage('Por favor ingresa tu correo y contraseña.');
+    const validationError = validateLoginInput(email, password);
+
+    if (validationError) {
+      setErrorMessage(validationError);
       return;
     }
 

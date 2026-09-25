@@ -37,7 +37,7 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "test": "node --import tsx --test tests/*.test.tsx",
+    "test": "node --import tsx --test tests/loginValidation.test.tsx tests/useReportesViewModel.test.tsx",
     "start": "expo start",
     "typecheck": "tsc --noEmit",
     "android": "expo start --android",
