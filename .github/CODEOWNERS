@@ -1,8 +1,11 @@
-# Revisores obligatorios para el archivo de trabajo crítico
-# Ajusta los owners según tu equipo real.
+# Propietario principal del código
+* @Dianamar06
 
-* @DianaHernandez @Eloscar21
+# Aplicación móvil
+/mejora-sjr-mobile/ @Dianamar06
 
-/mejora-sjr-mobile/ @DianaHernandez @Eloscar21
-/mejora-sjr-backend/ @Eloscar21
-/mejora-sjr-admin/ @DianaHernandez
+# Backend
+/mejora-sjr-backend/ @Dianamar06
+
+# Panel administrativo
+/mejora-sjr-admin/ @Dianamar06
