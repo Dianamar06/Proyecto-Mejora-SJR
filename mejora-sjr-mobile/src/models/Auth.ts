@@ -20,8 +20,8 @@ export interface RegisterPayload {
   NombreCompleto: string;
   /** Correo electrónico del ciudadano */
   Correo: string;
-  /** Contraseña o hash de la contraseña */
-  PasswordHash: string;
+  /** Contraseña sin encriptar (el backend la encriptará) */
+  Password: string;
   /** Teléfono de contacto (10 dígitos) */
   Telefono: string;
 }
