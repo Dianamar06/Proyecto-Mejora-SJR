@@ -142,6 +142,13 @@ export class AuthApiService implements IAuthService {
 
     return result;
   }
+
+  /**
+   * Implementación de GET genérico para cumplir parcialmente con IApiService / ReportesHttpService.
+   */
+  async get<T>(endpoint: string, options?: any): Promise<T> {
+    return this.executeRequest<T>(endpoint, 'GET');
+  }
 }
 
 /** Instancia singleton de servicio lista para inyección por defecto */

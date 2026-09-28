@@ -5,11 +5,14 @@ import { useHomeViewModel } from '@/viewModels/useHomeViewModel';
 import { useLoginViewModel } from '@/viewModels/useLoginViewModel';
 import { HomeView } from '@/views/HomeView';
 import { LoginView } from '@/views/LoginView';
+import { RegisterView } from '@/views/RegisterView';
 import { ReportesView } from '@/views/ReportesView';
 import { useReportesViewModel, type ReportesHttpService } from '@/viewModels/useReportesViewModel';
+import { useRegisterViewModel } from '@/viewModels/useRegisterViewModel';
 
 export type RootStackParamList = {
   Login: undefined;
+  Register: undefined;
   Home: undefined;
   Reportes: undefined;
 };
@@ -18,9 +21,27 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Composition adapters: navigation objects never reach the presentational views.
 function LoginScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Login'>) {
-  const { continueToHome } = useLoginViewModel(() => navigation.navigate('Home'));
+  const viewModel = useLoginViewModel();
 
-  return <LoginView onContinue={continueToHome} />;
+  return (
+    <LoginView
+      viewModel={viewModel}
+      onNavigateToRegister={() => navigation.navigate('Register')}
+      onLoginSuccess={() => navigation.navigate('Home')}
+    />
+  );
+}
+
+function RegisterScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Register'>) {
+  const viewModel = useRegisterViewModel();
+
+  return (
+    <RegisterView
+      viewModel={viewModel}
+      onNavigateToLogin={() => navigation.goBack()}
+      onRegisterSuccess={() => navigation.navigate('Home')}
+    />
+  );
 }
 
 function HomeScreen({ navigation }: NativeStackScreenProps<RootStackParamList, 'Home'>) {
@@ -39,6 +60,7 @@ export default function AppRouter({ apiService }: { apiService: ReportesHttpServ
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login" screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' } }}>
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Acceso' }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Registro' }} />
         <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Mejora SJR' }} />
         <Stack.Screen name="Reportes" options={{ title: 'Reportes' }}>
           {() => <ReportesScreen apiService={apiService} />}

@@ -14,10 +14,10 @@ const estadoLabels: Partial<Record<number, string>> = {
 };
 
 export type ReporteListItem = {
-  IdReporte: string;
-  Titulo: string;
-  Descripcion: string;
-  NombreEstado: string;
+  id: string;
+  titulo: string;
+  descripcion: string;
+  estado: string;
 };
 
 type ReportesState = {
@@ -40,10 +40,10 @@ function toListItems(response: unknown): ReporteListItem[] {
     if (ids.has(idStr)) throw new Error('La respuesta contiene identificadores de reportes duplicados.');
     ids.add(idStr);
     return {
-      IdReporte: idStr,
-      Titulo: reporte.Titulo.trim() || 'Sin título',
-      Descripcion: reporte.Descripcion.trim() || 'Sin descripción',
-      NombreEstado: estadoLabels[reporte.IdEstado] ?? `Estado ${reporte.IdEstado}`,
+      id: idStr,
+      titulo: reporte.Titulo.trim() || 'Sin título',
+      descripcion: reporte.Descripcion.trim() || 'Sin descripción',
+      estado: estadoLabels[reporte.IdEstado] ?? `Estado ${reporte.IdEstado}`,
     };
   });
 }
