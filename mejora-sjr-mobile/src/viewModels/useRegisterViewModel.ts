@@ -158,7 +158,7 @@ export function useRegisterViewModel(
       const payload = {
         NombreCompleto: nombreCompleto.trim(),
         Correo: correo.trim(),
-        PasswordHash: password,
+        Password: password,
         Telefono: telefono.trim(),
       };
 

@@ -133,8 +133,8 @@ export class AuthApiService implements IAuthService {
    * Realiza el registro enviando el payload PascalCase al backend.
    */
   async register(payload: RegisterPayload): Promise<AuthResponse> {
-    // Intentar endpoint estándar /auth/register
-    const result = await this.executeRequest<AuthResponse>('/auth/register', 'POST', payload);
+    // Intentar endpoint estándar /usuarios (backend lo expone así)
+    const result = await this.executeRequest<AuthResponse>('/usuarios', 'POST', payload);
 
     if (result && result.token) {
       await this.tokenStorage.setToken(result.token);
