@@ -58,6 +58,31 @@ class ReporteService {
 
         return { EvidenciaUrl: urlPublica };
     }
+
+    /**
+     * Obtiene el listado de reportes aplicando filtros opcionales de estado y categoría.
+     * La lógica delega la construcción del SQL dinámico al Repositorio.
+     */
+    async obtenerReportes(filtros = {}) {
+        return await this.reporteRepository.getReportes(filtros);
+    }
+
+    /**
+     * Actualiza el estado de un reporte validando su existencia previa.
+     */
+    async actualizarEstado(idReporte, nuevoEstado) {
+        // 1. Verificar si el reporte existe
+        const reporteExistente = await this.reporteRepository.findById(idReporte);
+        if (!reporteExistente) {
+            const error = new Error(`El reporte con ID ${idReporte} no fue encontrado`);
+            error.statusCode = 404;
+            throw error;
+        }
+
+        // 2. Ejecutar la actualización en base de datos
+        const reporteActualizado = await this.reporteRepository.actualizarEstado(idReporte, nuevoEstado);
+        return reporteActualizado;
+    }
 }
 
 module.exports = ReporteService;

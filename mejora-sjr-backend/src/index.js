@@ -30,11 +30,8 @@ app.use('/api/auth', authRoutes); // <-- Montaje de la ruta auth
 // Puerto y Arranque
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor de Mejora SJR corriendo en el puerto ${PORT}`);
-});
-
-app.listen(PORT, () => {
-  console.log(`[index.js] Servidor Mejora SJR escuchando en el puerto ${PORT}`);
+    console.log(`[index.js] Servidor de Mejora SJR corriendo en el puerto ${PORT}`);
 });
 
 module.exports = app;
+

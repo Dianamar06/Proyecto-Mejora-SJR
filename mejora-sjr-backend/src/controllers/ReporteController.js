@@ -16,9 +16,8 @@ class ReporteController {
             // El controlador SOLO valida la forma del payload y enruta (SRP)
             const payload = req.body;
 
-            // ✅ INYECCIÓN SEGURA DEL USUARIO (Mock temporal)
-            // Se debe leer desde req.user (el token desencriptado) en el futuro
-            payload.IdUsuario = req.user ? req.user.IdUsuario : 1;
+            // Inyección de usuario desde token desencriptado (o default temporal si no hay middleware en creación)
+            payload.IdUsuario = req.user ? req.user.IdUsuario : (payload.IdUsuario || 1);
 
             const camposFaltantes = CAMPOS_REQUERIDOS.filter(
                 (campo) => payload[campo] === undefined || payload[campo] === null || payload[campo] === ''
@@ -83,6 +82,90 @@ class ReporteController {
             return res.status(500).json({
                 success: false,
                 message: error.message
+            });
+        }
+    }
+
+    /**
+     * GET /api/reportes
+     * Obtiene el listado de reportes con filtros opcionales de query (?estado=...&categoria=...)
+     */
+    async obtenerReportes(req, res) {
+        try {
+            const { estado, categoria } = req.query;
+
+            const reportes = await this.reporteService.obtenerReportes({ estado, categoria });
+
+            return res.status(200).json({
+                success: true,
+                message: 'Reportes obtenidos con éxito',
+                total: reportes.length,
+                data: reportes
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Error interno del servidor al obtener reportes'
+            });
+        }
+    }
+
+    /**
+     * PUT /api/reportes/:id/estado
+     * Actualiza el estado de un reporte.
+     * Códigos HTTP:
+     * - 200 OK: Actualización exitosa.
+     * - 400 Bad Request: Parámetros o cuerpo de la petición inválidos.
+     * - 404 Not Found: El reporte con el :id especificado no existe.
+     * - 500 Internal Server Error: Error no controlado en BD o servidor.
+     */
+    async actualizarEstado(req, res) {
+        try {
+            const { id } = req.params;
+            const idReporte = parseInt(id, 10);
+
+            if (isNaN(idReporte) || idReporte <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El parámetro :id debe ser un número entero válido'
+                });
+            }
+
+            // Soporta tanto IdEstado como estado en el cuerpo de la petición
+            const rawEstado = req.body.IdEstado !== undefined ? req.body.IdEstado : req.body.estado;
+            if (rawEstado === undefined || rawEstado === null || rawEstado === '') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El campo IdEstado (o estado) es requerido'
+                });
+            }
+
+            const nuevoEstado = parseInt(rawEstado, 10);
+            if (isNaN(nuevoEstado)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El campo IdEstado debe ser un valor numérico entero'
+                });
+            }
+
+            const reporteActualizado = await this.reporteService.actualizarEstado(idReporte, nuevoEstado);
+
+            return res.status(200).json({
+                success: true,
+                message: 'Estado del reporte actualizado con éxito',
+                data: reporteActualizado
+            });
+        } catch (error) {
+            if (error.statusCode === 404 || error.message.includes('no fue encontrado') || error.message.includes('no existe')) {
+                return res.status(404).json({
+                    success: false,
+                    message: error.message
+                });
+            }
+
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Error interno del servidor al actualizar el estado del reporte'
             });
         }
     }
