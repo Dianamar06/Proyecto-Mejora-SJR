@@ -69,7 +69,8 @@ export class AuthApiService implements IAuthService {
   private async executeRequest<T>(
     endpoint: string,
     method: 'POST' | 'GET',
-    body?: unknown
+    body?: unknown,
+    requiresAuth = false,
   ): Promise<T> {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${this.baseUrl}${cleanEndpoint}`;
@@ -78,6 +79,11 @@ export class AuthApiService implements IAuthService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
+
+    if (requiresAuth) {
+      const token = await this.tokenStorage.getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
 
     let response: Response;
     try {
@@ -119,14 +125,29 @@ export class AuthApiService implements IAuthService {
    * Realiza el inicio de sesión enviando el payload PascalCase al backend.
    */
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    // Intentar endpoint estándar /auth/login
-    const result = await this.executeRequest<AuthResponse>('/auth/login', 'POST', payload);
+    const result = await this.executeRequest<{
+      success: boolean;
+      message?: string;
+      data?: {
+        token?: string;
+        usuario?: { IdUsuario?: number; NombreCompleto?: string; IdRol?: number };
+      };
+    }>('/auth/login', 'POST', payload);
 
-    if (result && result.token) {
-      await this.tokenStorage.setToken(result.token);
+    if (!result.success || !result.data?.token) {
+      throw new ApiError(result.message || 'El servidor no devolvió una sesión válida.');
     }
 
-    return result;
+    return {
+      token: result.data.token,
+      usuario: result.data.usuario ? {
+        id: result.data.usuario.IdUsuario,
+        nombreCompleto: result.data.usuario.NombreCompleto,
+        correo: payload.Correo,
+        rol: result.data.usuario.IdRol === undefined ? undefined : String(result.data.usuario.IdRol),
+      } : undefined,
+      message: result.message,
+    };
   }
 
   /**
@@ -134,20 +155,14 @@ export class AuthApiService implements IAuthService {
    */
   async register(payload: RegisterPayload): Promise<AuthResponse> {
     // Intentar endpoint estándar /usuarios (backend lo expone así)
-    const result = await this.executeRequest<AuthResponse>('/usuarios', 'POST', payload);
-
-    if (result && result.token) {
-      await this.tokenStorage.setToken(result.token);
-    }
-
-    return result;
+    return this.executeRequest<AuthResponse>('/usuarios', 'POST', payload);
   }
 
   /**
    * Implementación de GET genérico para cumplir parcialmente con IApiService / ReportesHttpService.
    */
   async get<T>(endpoint: string, options?: any): Promise<T> {
-    return this.executeRequest<T>(endpoint, 'GET');
+    return this.executeRequest<T>(endpoint, 'GET', undefined, options?.requiresAuth !== false);
   }
 }
 

@@ -17,7 +17,7 @@ export class MockAuthService implements IAuthService {
       throw new Error(this.failureMessage);
     }
 
-    if (payload.Correo === 'error@sjr.gob.mx') {
+    if (payload.Correo === 'error@sjr.gob.mx' || !payload.Password) {
       throw new Error('Credenciales inválidas');
     }
 

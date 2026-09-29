@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { IAuthService } from '../services/contracts/IAuthService';
-import { authApiService } from '../services/api/AuthApiService';
 import { AuthResponse } from '../models/Auth';
 
 /**
@@ -35,12 +34,13 @@ export interface LoginViewModelReturn {
  * - SOLID & DI: Recibe el servicio IAuthService inyectado por parámetro.
  *   Por defecto inyecta authApiService; sustituible por mocks en tests.
  * - Sin dependencias directas de Axios o Fetch.
- * - Envía el payload con claves estrictamente en PascalCase: { Correo, PasswordHash }.
+ * - Envía el payload con claves estrictamente en PascalCase: { Correo, Password }.
  * 
  * @param service Instancia de IAuthService inyectada (DIP).
  */
 export function useLoginViewModel(
-  service: IAuthService = authApiService
+  service: IAuthService,
+  onAuthenticated?: (token: string) => Promise<boolean>,
 ): LoginViewModelReturn {
   const [correo, setCorreoState] = useState<string>('');
   const [password, setPasswordState] = useState<string>('');
@@ -112,10 +112,13 @@ export function useLoginViewModel(
       // Payload en PascalCase según especificación del backend
       const payload = {
         Correo: correo.trim(),
-        PasswordHash: password,
+        Password: password,
       };
 
       const response = await service.login(payload);
+      if (onAuthenticated && !(await onAuthenticated(response.token))) {
+        throw new Error('No fue posible guardar la sesión en este dispositivo.');
+      }
       setAuthData(response);
       setIsSuccess(true);
       return true;
@@ -130,7 +133,7 @@ export function useLoginViewModel(
     } finally {
       setIsLoading(false);
     }
-  }, [correo, password, service]);
+  }, [correo, password, service, onAuthenticated]);
 
   return {
     correo,

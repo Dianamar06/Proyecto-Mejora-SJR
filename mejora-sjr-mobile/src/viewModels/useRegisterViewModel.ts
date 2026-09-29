@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { IAuthService } from '../services/contracts/IAuthService';
-import { authApiService } from '../services/api/AuthApiService';
 import { AuthResponse } from '../models/Auth';
 
 /**
@@ -46,7 +45,7 @@ export interface RegisterViewModelReturn {
  * @param service Instancia de IAuthService inyectada.
  */
 export function useRegisterViewModel(
-  service: IAuthService = authApiService
+  service: IAuthService
 ): RegisterViewModelReturn {
   const [nombreCompleto, setNombreCompletoState] = useState<string>('');
   const [correo, setCorreoState] = useState<string>('');

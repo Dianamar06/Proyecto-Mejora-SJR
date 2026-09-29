@@ -4,15 +4,15 @@
  * NOTA CRÍTICA:
  * Los payloads de la API requieren estrictamente PascalCase para coincidir
  * con el backend y la base de datos Azure SQL (MejoraSJR_DB):
- * - Registro: { NombreCompleto, Correo, PasswordHash, Telefono }
- * - Login:    { Correo, PasswordHash }
+ * - Registro: { NombreCompleto, Correo, Password, Telefono }
+ * - Login:    { Correo, Password }
  */
 
 export interface LoginPayload {
   /** Correo electrónico del usuario o ciudadano */
   Correo: string;
-  /** Contraseña o hash de la contraseña */
-  PasswordHash: string;
+  /** Contraseña; el backend verifica el hash almacenado. */
+  Password: string;
 }
 
 export interface RegisterPayload {

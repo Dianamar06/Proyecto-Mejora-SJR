@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { useRegisterViewModel, RegisterViewModelReturn } from '../viewModels/useRegisterViewModel';
+import { RegisterViewModelReturn } from '../viewModels/useRegisterViewModel';
 import { AuthResponse } from '../models/Auth';
 
 export interface RegisterViewProps {
@@ -21,7 +21,7 @@ export interface RegisterViewProps {
   /** Callback ejecutado cuando el registro es exitoso */
   onRegisterSuccess?: (authData: AuthResponse | null) => void;
   /** Inyección opcional del ViewModel para testing o previews */
-  viewModel?: RegisterViewModelReturn;
+  viewModel: RegisterViewModelReturn;
 }
 
 /**
@@ -37,8 +37,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   onRegisterSuccess,
   viewModel,
 }) => {
-  const defaultVm = useRegisterViewModel();
-  const vm = viewModel ?? defaultVm;
+  const vm = viewModel;
 
   const handlePressRegister = async () => {
     const success = await vm.handleSubmit();

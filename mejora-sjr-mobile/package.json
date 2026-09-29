@@ -12,9 +12,15 @@
     "expo-font": "~57.0.3",
     "expo-glass-effect": "~57.0.4",
     "expo-image": "~57.0.5",
+<<<<<<< HEAD
     "expo-image-picker": "^57.0.20",
     "expo-linking": "~57.0.11",
     "expo-location": "^57.0.20",
+=======
+    "expo-image-picker": "~57.0.20",
+    "expo-linking": "~57.0.11",
+    "expo-secure-store": "~57.0.4",
+>>>>>>> f3501e9 (HU-18: Persistencia de sesión y cámara)
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.3",

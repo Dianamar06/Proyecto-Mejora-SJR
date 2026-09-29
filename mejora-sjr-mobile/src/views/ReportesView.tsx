@@ -1,5 +1,6 @@
 import { ActivityIndicator, Button, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { ReporteListItem } from '../viewModels/useReportesViewModel';
 
 import type { ReporteListItem } from '../viewModels/useReportesViewModel';
 

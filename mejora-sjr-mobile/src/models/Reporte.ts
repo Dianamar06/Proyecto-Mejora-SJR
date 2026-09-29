@@ -34,9 +34,16 @@ export type ReporteFormulario = {
 
 export type ErroresReporte = Partial<Record<keyof Omit<ReporteFormulario, 'foto'>, string>>;
 
-export interface Reporte extends CrearReportePayload {
+export interface Reporte {
   IdReporte: number;
+  Titulo: string;
+  Descripcion: string;
+  UbicacionLatitud: number;
+  UbicacionLongitud: number;
+  DireccionFisica?: string | null;
+  EvidenciaUrl?: string | null;
   IdUsuario: number;
+  IdCategoria: number;
   IdEstado: number;
   FechaCreacion: string;
   FechaActualizacion: string;
@@ -47,16 +54,16 @@ export function isReporte(obj: unknown): obj is Reporte {
   const r = obj as Record<string, unknown>;
   
   return (
-    typeof r.IdReporte === 'number' &&
+    typeof r.IdReporte === 'number' && Number.isFinite(r.IdReporte) &&
     typeof r.Titulo === 'string' &&
     typeof r.Descripcion === 'string' &&
-    typeof r.UbicacionLatitud === 'number' &&
-    Number.isFinite(r.UbicacionLatitud) &&
-    typeof r.UbicacionLongitud === 'number' &&
-    Number.isFinite(r.UbicacionLongitud) &&
-    typeof r.IdUsuario === 'number' &&
-    typeof r.IdCategoria === 'number' &&
-    typeof r.IdEstado === 'number' &&
+    typeof r.UbicacionLatitud === 'number' && Number.isFinite(r.UbicacionLatitud) &&
+    typeof r.UbicacionLongitud === 'number' && Number.isFinite(r.UbicacionLongitud) &&
+    (r.DireccionFisica === undefined || r.DireccionFisica === null || typeof r.DireccionFisica === 'string') &&
+    (r.EvidenciaUrl === undefined || r.EvidenciaUrl === null || typeof r.EvidenciaUrl === 'string') &&
+    typeof r.IdUsuario === 'number' && Number.isFinite(r.IdUsuario) &&
+    typeof r.IdCategoria === 'number' && Number.isFinite(r.IdCategoria) &&
+    typeof r.IdEstado === 'number' && Number.isFinite(r.IdEstado) &&
     typeof r.FechaCreacion === 'string' &&
     typeof r.FechaActualizacion === 'string' &&
     (r.DireccionFisica === undefined || r.DireccionFisica === null || typeof r.DireccionFisica === 'string') &&

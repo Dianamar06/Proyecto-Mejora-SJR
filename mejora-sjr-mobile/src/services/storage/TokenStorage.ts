@@ -1,49 +1,51 @@
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { ITokenStorage } from '../contracts/ITokenStorage';
 
 const TOKEN_KEY = 'sjr_auth_token';
 
 /**
- * Implementación de almacenamiento de token adaptable a la plataforma.
- * - En Web: utiliza localStorage de forma segura con fallback a memoria.
- * - En Android / iOS: almacena en memoria con fallback seguro.
+ * Única responsabilidad: persistir, recuperar y eliminar el JWT.
+ * - Android / iOS: SecureStore cifra el valor en el almacenamiento del sistema.
+ * - Web: localStorage mantiene la sesión entre recargas del navegador.
  * 
  * Cumple con ITokenStorage para permitir Dependency Inversion (SOLID).
  */
 export class TokenStorage implements ITokenStorage {
-  private inMemoryToken: string | null = null;
-
   async getToken(): Promise<string | null> {
-    try {
-      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(TOKEN_KEY) ?? this.inMemoryToken;
-      }
-      return this.inMemoryToken;
-    } catch {
-      return this.inMemoryToken;
+    if (Platform.OS === 'web') {
+      return typeof window === 'undefined' ? null : window.localStorage.getItem(TOKEN_KEY);
     }
+
+    return SecureStore.getItemAsync(TOKEN_KEY);
   }
 
   async setToken(token: string): Promise<void> {
-    try {
-      this.inMemoryToken = token;
-      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(TOKEN_KEY, token);
-      }
-    } catch {
-      this.inMemoryToken = token;
+    const normalizedToken = token.trim();
+    if (!normalizedToken) {
+      throw new Error('No se puede guardar un token vacío.');
     }
+
+    if (Platform.OS === 'web') {
+      if (typeof window === 'undefined') {
+        throw new Error('El almacenamiento web no está disponible.');
+      }
+      window.localStorage.setItem(TOKEN_KEY, normalizedToken);
+      return;
+    }
+
+    await SecureStore.setItemAsync(TOKEN_KEY, normalizedToken);
   }
 
   async removeToken(): Promise<void> {
-    try {
-      this.inMemoryToken = null;
-      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.localStorage) {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined') {
         window.localStorage.removeItem(TOKEN_KEY);
       }
-    } catch {
-      this.inMemoryToken = null;
+      return;
     }
+
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
   }
 }
 

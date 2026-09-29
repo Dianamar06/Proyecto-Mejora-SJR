@@ -33,7 +33,16 @@
         }
       ],
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Mejora SJR necesita acceder a tus fotos para adjuntar evidencia al reporte.",
+          "cameraPermission": "Mejora SJR necesita usar la cámara para capturar evidencia del reporte.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "reactCompiler": true

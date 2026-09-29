@@ -1,3 +1,3 @@
-export function useHomeViewModel(onReturnToLogin: () => void) {
-  return { returnToLogin: onReturnToLogin };
+export function useHomeViewModel(onSignOut: () => Promise<void>) {
+  return { signOut: onSignOut };
 }

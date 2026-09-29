@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { useLoginViewModel, LoginViewModelReturn } from '../viewModels/useLoginViewModel';
+import { LoginViewModelReturn } from '../viewModels/useLoginViewModel';
 import { AuthResponse } from '../models/Auth';
 
 export interface LoginViewProps {
@@ -21,7 +21,7 @@ export interface LoginViewProps {
   /** Callback ejecutado al autenticarse exitosamente */
   onLoginSuccess?: (authData: AuthResponse | null) => void;
   /** Inyección opcional del ViewModel para pruebas de UI aisladas */
-  viewModel?: LoginViewModelReturn;
+  viewModel: LoginViewModelReturn;
 }
 
 /**
@@ -37,8 +37,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   onLoginSuccess,
   viewModel,
 }) => {
-  const defaultVm = useLoginViewModel();
-  const vm = viewModel ?? defaultVm;
+  const vm = viewModel;
 
   // Manejar el submit y disparar callback si tiene éxito
   const handlePressLogin = async () => {
