@@ -1,12 +1,18 @@
-/** Contrato exacto de creación definido por HU-12. */
+/** Contrato exacto de creación definido por HU-12 y HU-17. */
 export interface CrearReportePayload {
   Titulo: string;
   Descripcion: string;
   UbicacionLatitud: number;
   UbicacionLongitud: number;
-  DireccionFisica: string;
-  EvidenciaUrl: string;
   IdCategoria: number;
+  DireccionFisica?: string | null;
+  EvidenciaUrl?: string | null;
+}
+
+export interface EvidenciaArchivo {
+  uri: string;
+  name?: string;
+  type?: string;
 }
 
 export interface CategoriaReporte {
@@ -16,10 +22,17 @@ export interface CategoriaReporte {
 
 /** TextInput conserva texto, incluso mientras se escribe un signo o decimal. */
 export type ReporteFormulario = {
-  [K in keyof CrearReportePayload]: K extends 'IdCategoria' ? number | null : string;
+  Titulo: string;
+  Descripcion: string;
+  UbicacionLatitud: string;
+  UbicacionLongitud: string;
+  DireccionFisica: string;
+  EvidenciaUrl: string;
+  IdCategoria: number | null;
+  foto?: EvidenciaArchivo | null;
 };
 
-export type ErroresReporte = Partial<Record<keyof CrearReportePayload, string>>;
+export type ErroresReporte = Partial<Record<keyof Omit<ReporteFormulario, 'foto'>, string>>;
 
 export interface Reporte extends CrearReportePayload {
   IdReporte: number;
@@ -38,11 +51,15 @@ export function isReporte(obj: unknown): obj is Reporte {
     typeof r.Titulo === 'string' &&
     typeof r.Descripcion === 'string' &&
     typeof r.UbicacionLatitud === 'number' &&
+    Number.isFinite(r.UbicacionLatitud) &&
     typeof r.UbicacionLongitud === 'number' &&
+    Number.isFinite(r.UbicacionLongitud) &&
     typeof r.IdUsuario === 'number' &&
     typeof r.IdCategoria === 'number' &&
     typeof r.IdEstado === 'number' &&
     typeof r.FechaCreacion === 'string' &&
-    typeof r.FechaActualizacion === 'string'
+    typeof r.FechaActualizacion === 'string' &&
+    (r.DireccionFisica === undefined || r.DireccionFisica === null || typeof r.DireccionFisica === 'string') &&
+    (r.EvidenciaUrl === undefined || r.EvidenciaUrl === null || typeof r.EvidenciaUrl === 'string')
   );
 }

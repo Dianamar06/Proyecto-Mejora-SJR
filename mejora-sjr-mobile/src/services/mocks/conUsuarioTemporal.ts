@@ -1,15 +1,17 @@
-import type { IReporteApiService } from '../contracts/IReporteApiService';
+import type { EvidenciaArchivo } from '../../models/Reporte';
+import type { EvidenciaSubidaResponse, IReporteApiService, ReporteCreadoResponse } from '../contracts/IReporteApiService';
 
 /**
- * Acuerdo temporal HU-12: atribuye los reportes al usuario de prueba 1.
- * TODO: retirar este adaptador de reporteDependencies cuando el backend
- * resuelva IdUsuario desde el JWT verificado. No representa al usuario logueado.
+ * Acuerdo temporal: atribuye los reportes al usuario de prueba 1 si no viene en el token.
  */
 export function conUsuarioTemporal(apiService: IReporteApiService): IReporteApiService {
   return {
-    crearReporte(payload) {
+    async crearReporte(payload): Promise<ReporteCreadoResponse> {
       const payloadTemporal = { ...payload, IdUsuario: 1 };
-      return apiService.crearReporte(payloadTemporal);
+      return apiService.crearReporte(payloadTemporal as any);
+    },
+    async subirEvidencia(idReporte: number | string, archivo: EvidenciaArchivo): Promise<EvidenciaSubidaResponse> {
+      return apiService.subirEvidencia(idReporte, archivo);
     },
   };
 }
