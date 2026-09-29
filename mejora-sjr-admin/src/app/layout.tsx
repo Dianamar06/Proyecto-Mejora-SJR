@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Panel de gestión y seguimiento de reportes ciudadanos urbanos del Municipio de San Juan del Río, Querétaro.",
 };
 
+import { Toaster } from "react-hot-toast";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +30,10 @@ export default function RootLayout({
       lang="es-MX"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#0B0F19] text-slate-100">{children}</body>
+      <body className="min-h-full bg-[#0B0F19] text-slate-100">
+        {children}
+        <Toaster position="bottom-right" />
+      </body>
     </html>
   );
 }
