@@ -6,6 +6,8 @@
  * REGLA SRP: Solo dibuja UI basándose en el esquema SQL estricto.
  */
 
+import { useReporteRowViewModel } from "@/viewModels/useReporteRowViewModel";
+
 interface ReporteRowProps {
   IdReporte: number;
   Descripcion: string;
@@ -36,36 +38,40 @@ function formatearFecha(iso: string): string {
 // ─── Componente ─────────────────────────────────────────────────────────
 
 export function ReporteRow({ IdReporte, Descripcion, IdEstado, IdCategoria, FechaCreacion }: ReporteRowProps) {
-  // Si llega un estado desconocido de BD, asignamos un fallback neutro
-  const estadoConf = ESTADO_CONFIG[IdEstado] || { label: `Estado ${IdEstado}`, className: 'bg-slate-400/10 text-slate-400 ring-slate-400/20' };
+  const vm = useReporteRowViewModel(IdReporte, IdEstado);
+  const estadoConf = ESTADO_CONFIG[vm.estadoActual] || ESTADO_CONFIG[1];
 
   return (
     <tr className="border-b border-white/5 transition-colors hover:bg-white/[0.03]">
-      {/* ID */}
       <td className="py-3 pl-4 pr-3 text-xs font-mono text-slate-500">
         #{String(IdReporte).padStart(4, '0')}
       </td>
 
-      {/* Descripción */}
       <td className="max-w-xs px-3 py-3">
         <p className="truncate text-sm text-slate-200" title={Descripcion}>
           {Descripcion}
         </p>
       </td>
 
-      {/* Categoría */}
       <td className="px-3 py-3 text-xs text-slate-400">
         Categoría {IdCategoria}
       </td>
 
-      {/* Estado — badge (NombreEstado resuelto en UI) */}
       <td className="px-3 py-3">
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${estadoConf.className}`}>
-          {estadoConf.label}
-        </span>
+        <select
+          value={vm.estadoActual}
+          onChange={(e) => vm.handleEstadoChange(e.target.value)}
+          disabled={vm.isUpdating}
+          className={`appearance-none cursor-pointer rounded-full px-3 py-1 text-xs font-medium border focus:outline-none transition-all disabled:opacity-50 bg-slate-900 ${estadoConf.className}`}
+        >
+          {Object.entries(ESTADO_CONFIG).map(([idStr, config]) => (
+            <option key={idStr} value={idStr} className="bg-slate-900 text-slate-200">
+              {config.label}
+            </option>
+          ))}
+        </select>
       </td>
 
-      {/* Fecha */}
       <td className="px-3 py-3 pr-4 text-xs text-slate-500">
         {formatearFecha(FechaCreacion)}
       </td>
