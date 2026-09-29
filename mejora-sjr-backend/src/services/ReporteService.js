@@ -1,6 +1,7 @@
 class ReporteService {
-    constructor(reporteRepository) {
+    constructor(reporteRepository, storageService) {
         this.reporteRepository = reporteRepository;
+        this.storageService = storageService;
     }
 
     async crearReporte(datosReporte) {
@@ -43,6 +44,19 @@ class ReporteService {
         const resultado = await this.reporteRepository.createReporte(nuevoReporte);
 
         return { ...nuevoReporte, ...resultado };
+    }
+
+    async subirEvidencia(idReporte, fileBuffer) {
+        // 1. Subir la imagen a la nube
+        const urlPublica = await this.storageService.subirImagen(fileBuffer);
+        
+        // 2. Guardar la URL en la BD
+        const actualizado = await this.reporteRepository.actualizarEvidencia(idReporte, urlPublica);
+        if (!actualizado) {
+            throw new Error('No se encontró el reporte para actualizar la evidencia.');
+        }
+
+        return { EvidenciaUrl: urlPublica };
     }
 }
 

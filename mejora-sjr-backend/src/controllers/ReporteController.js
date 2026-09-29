@@ -60,6 +60,32 @@ class ReporteController {
             });
         }
     }
+
+    async subirEvidencia(req, res) {
+        try {
+            const { id } = req.params;
+            
+            if (!req.file) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No se envió ninguna imagen (campo esperado: evidencia).'
+                });
+            }
+
+            const resultado = await this.reporteService.subirEvidencia(id, req.file.buffer);
+
+            return res.status(200).json({
+                success: true,
+                message: 'Evidencia subida y guardada correctamente en la BD.',
+                data: resultado
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 }
 
 module.exports = ReporteController;

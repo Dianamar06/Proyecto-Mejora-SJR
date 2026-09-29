@@ -55,6 +55,19 @@ class ReporteRepository {
             .input('IdCategoria', sql.Int, idCategoria)
             .query('SELECT IdCategoria FROM Categorias WHERE IdCategoria = @IdCategoria');
         return result.recordset.length > 0;
+    /**
+     * Actualiza la URL de la evidencia fotográfica de un reporte existente.
+     */
+    async actualizarEvidencia(idReporte, evidenciaUrl) {
+        const result = await this.dbPool.request()
+            .input('IdReporte', sql.Int, idReporte)
+            .input('EvidenciaUrl', sql.VarChar, evidenciaUrl)
+            .query(`
+                UPDATE Reportes 
+                SET EvidenciaUrl = @EvidenciaUrl, FechaActualizacion = GETDATE()
+                WHERE IdReporte = @IdReporte
+            `);
+        return result.rowsAffected[0] > 0;
     }
 }
 

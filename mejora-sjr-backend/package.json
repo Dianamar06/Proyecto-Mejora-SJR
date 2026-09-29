@@ -14,12 +14,15 @@
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^14.4.0",
     "jsonwebtoken": "^9.0.3",
     "mssql": "^12.7.2",
+    "multer": "^2.4.0",
+    "streamifier": "^0.1.1",
     "zod": "^4.6.2"
   }
 }

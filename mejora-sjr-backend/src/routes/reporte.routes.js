@@ -1,10 +1,13 @@
 const { Router } = require('express');
+const multer = require('multer');
 const ReporteRepository = require('../repositories/ReporteRepository');
+const StorageService = require('../services/StorageService');
 const ReporteService = require('../services/ReporteService');
 const ReporteController = require('../controllers/ReporteController');
 const { getPool } = require('../config/db');
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // ==========================================
 // INYECCIÓN DE DEPENDENCIAS (Fábrica)
@@ -20,8 +23,11 @@ async function inyectarDependencias(req, res, next) {
             // Inyectar Pool al Repositorio
             const reporteRepository = new ReporteRepository(dbPool);
 
-            // Inyectar Repositorio al Servicio
-            const reporteService = new ReporteService(reporteRepository);
+            // Instanciar StorageService
+            const storageService = new StorageService();
+
+            // Inyectar Repositorio y StorageService al Servicio
+            const reporteService = new ReporteService(reporteRepository, storageService);
 
             // Inyectar Servicio al Controlador
             reporteControllerInstance = new ReporteController(reporteService);
@@ -37,6 +43,10 @@ async function inyectarDependencias(req, res, next) {
 // ==========================================
 router.post('/reportes', inyectarDependencias, (req, res) => {
     reporteControllerInstance.crearReporte(req, res);
+});
+
+router.post('/reportes/:id/evidencia', inyectarDependencias, upload.single('evidencia'), (req, res) => {
+    reporteControllerInstance.subirEvidencia(req, res);
 });
 
 module.exports = router;
