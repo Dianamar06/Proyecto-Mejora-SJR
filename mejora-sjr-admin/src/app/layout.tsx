@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Panel de gestión y seguimiento de reportes ciudadanos urbanos del Municipio de San Juan del Río, Querétaro.",
 };
 
-import { Toaster } from "react-hot-toast";
+
 
 export default function RootLayout({
   children,
