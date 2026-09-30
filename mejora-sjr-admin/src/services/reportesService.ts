@@ -81,7 +81,11 @@ class ReportesApiService implements IReportesService {
       throw new Error(mensaje);
     }
 
-    return response.json() as Promise<ReportesResponse>;
+    const data = await response.json();
+    return {
+      reportes: data.data,
+      total: data.total
+    };
   }
 }
 

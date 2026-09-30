@@ -11,8 +11,8 @@
 export interface LoginPayload {
   /** Correo electrónico del administrador */
   Correo: string;
-  /** Contraseña ya hasheada (SHA-256 o lo que defina el backend) */
-  PasswordHash: string;
+  /** Contraseña en texto plano para que el backend la verifique */
+  Password: string;
 }
 
 export interface LoginResponse {

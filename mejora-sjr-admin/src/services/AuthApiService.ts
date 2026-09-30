@@ -14,7 +14,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000"
 
 export class AuthApiService implements IAuthService {
   async login(payload: LoginPayload): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE}/auth/login`, {
+    const response = await fetch(`${API_BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -33,7 +33,7 @@ export class AuthApiService implements IAuthService {
   }
 
   async register(payload: import("./IAuthService").RegisterPayload): Promise<void> {
-    const response = await fetch(`${API_BASE}/usuarios`, {
+    const response = await fetch(`${API_BASE}/api/usuarios`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

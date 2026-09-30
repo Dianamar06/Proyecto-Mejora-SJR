@@ -20,7 +20,7 @@
 
 import { useMemo } from 'react';
 import { useDashboardViewModel } from '@/viewModels/useDashboardViewModel';
-import { dashboardServiceMock } from '@/services/mocks/dashboardServiceMock';
+import { dashboardApiService } from '@/services/DashboardApiService';
 import { DashboardView } from '@/views/DashboardView';
 
 export default function DashboardPage() {
@@ -29,7 +29,7 @@ export default function DashboardPage() {
    * el useEffect del ViewModel no se dispare en cada render.
    * Cuando se use un servicio singleton real, esto ya no será necesario.
    */
-  const service = useMemo(() => dashboardServiceMock, []);
+  const service = useMemo(() => dashboardApiService, []);
 
   // ── Inyección de dependencia: el ViewModel recibe el servicio por parámetro ──
   const { resumen, isLoading, error } = useDashboardViewModel(service);

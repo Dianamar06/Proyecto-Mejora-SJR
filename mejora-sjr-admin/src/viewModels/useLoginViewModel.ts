@@ -76,7 +76,7 @@ export function useLoginViewModel(
         // Construye el payload en PascalCase tal como espera el backend
         const response = await service.login({
           Correo: formState.correo.trim(),
-          PasswordHash: formState.password, // El hashing puede hacerse aquí si el backend lo requiere
+          Password: formState.password,
         });
 
         // Persistir el token de sesión (ajusta la estrategia según el proyecto)
