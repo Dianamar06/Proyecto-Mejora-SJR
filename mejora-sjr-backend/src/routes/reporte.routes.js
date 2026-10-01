@@ -4,7 +4,7 @@ const ReporteRepository = require('../repositories/ReporteRepository');
 const StorageService = require('../services/StorageService');
 const ReporteService = require('../services/ReporteService');
 const ReporteController = require('../controllers/ReporteController');
-const { validarOperadorAdmin } = require('../middlewares/auth.middleware');
+const { validarOperadorAdmin, autenticarToken } = require('../middlewares/auth.middleware');
 const { getPool } = require('../config/db');
 
 const router = Router();
@@ -53,8 +53,8 @@ router.post('/reportes/:id/evidencia', inyectarDependencias, upload.single('evid
     reporteControllerInstance.subirEvidencia(req, res);
 });
 
-// HU-13: Listado de reportes con filtros dinámicos (?estado=...&categoria=...)
-router.get('/reportes', inyectarDependencias, (req, res) => {
+// HU-13: Listado de reportes con filtros dinámicos y segregación por departamento
+router.get('/reportes', autenticarToken, inyectarDependencias, (req, res) => {
     reporteControllerInstance.obtenerReportes(req, res);
 });
 

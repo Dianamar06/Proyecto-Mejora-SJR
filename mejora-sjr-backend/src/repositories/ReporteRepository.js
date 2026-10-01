@@ -91,6 +91,11 @@ class ReporteRepository {
             }
         }
 
+        if (filtros.idDepartamento) {
+            request.input('IdDepartamento', sql.Int, filtros.idDepartamento);
+            conditions.push('c.IdDepartamento = @IdDepartamento');
+        }
+
         let query = `
             SELECT 
                 r.IdReporte,
@@ -106,6 +111,7 @@ class ReporteRepository {
                 r.FechaCreacion,
                 r.FechaActualizacion
             FROM Reportes r
+            LEFT JOIN Categorias c ON r.IdCategoria = c.IdCategoria
         `;
 
         if (conditions.length > 0) {

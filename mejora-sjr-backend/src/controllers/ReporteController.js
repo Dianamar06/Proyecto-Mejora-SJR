@@ -93,8 +93,11 @@ class ReporteController {
     async obtenerReportes(req, res) {
         try {
             const { estado, categoria } = req.query;
+            
+            // Segregación de datos: Si el usuario tiene departamento (Admin/Trabajador), solo ve lo de su área.
+            const idDepartamento = req.user && req.user.IdDepartamento ? req.user.IdDepartamento : null;
 
-            const reportes = await this.reporteService.obtenerReportes({ estado, categoria });
+            const reportes = await this.reporteService.obtenerReportes({ estado, categoria, idDepartamento });
 
             return res.status(200).json({
                 success: true,

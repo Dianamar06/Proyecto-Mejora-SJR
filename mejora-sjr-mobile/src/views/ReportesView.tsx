@@ -2,8 +2,6 @@ import { ActivityIndicator, Button, FlatList, StyleSheet, Text, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ReporteListItem } from '../viewModels/useReportesViewModel';
 
-import type { ReporteListItem } from '../viewModels/useReportesViewModel';
-
 type ReportesViewProps = {
   isLoading: boolean;
   reportes: readonly ReporteListItem[];

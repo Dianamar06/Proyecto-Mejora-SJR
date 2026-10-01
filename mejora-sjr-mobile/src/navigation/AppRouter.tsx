@@ -7,6 +7,11 @@ import { HomeView } from '@/views/HomeView';
 import { LoginView } from '@/views/LoginView';
 import { RegisterView } from '@/views/RegisterView';
 import { ReportesView } from '@/views/ReportesView';
+import { ReporteView } from '@/views/ReporteView';
+import { useReporteViewModel } from '@/viewModels/useReporteViewModel';
+import { CATEGORIAS_REPORTE } from '@/constants/categoriasReporte';
+import { ReporteApiService } from '@/services/api/ReporteApiService';
+import { TokenStorage } from '@/services/storage/TokenStorage';
 import { useReportesViewModel, type ReportesHttpService } from '@/viewModels/useReportesViewModel';
 import { useRegisterViewModel } from '@/viewModels/useRegisterViewModel';
 import type { IAuthService } from '@/services/contracts/IAuthService';
@@ -18,6 +23,7 @@ export type RootStackParamList = {
   Register: undefined;
   Home: undefined;
   Reportes: undefined;
+  CrearReporte: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -62,7 +68,21 @@ type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'> & {
 function HomeScreen({ navigation, signOut }: HomeScreenProps) {
   const { signOut: closeSession } = useHomeViewModel(signOut);
 
-  return <HomeView onSignOut={() => void closeSession()} onOpenReportes={() => navigation.navigate('Reportes')} />;
+  return (
+    <HomeView 
+      onSignOut={() => void closeSession()} 
+      onOpenReportes={() => navigation.navigate('Reportes')} 
+      onOpenCrearReporte={() => navigation.navigate('CrearReporte')}
+    />
+  );
+}
+
+function CrearReporteScreen() {
+  const tokenStorage = new TokenStorage();
+  const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const apiService = new ReporteApiService(baseUrl, tokenStorage);
+  const viewModel = useReporteViewModel(apiService, CATEGORIAS_REPORTE);
+  return <ReporteView {...viewModel} />;
 }
 
 function ReportesScreen({ apiService }: { apiService: ReportesHttpService }) {
@@ -88,6 +108,9 @@ export default function AppRouter({ apiService, session }: AppRouterProps) {
             </Stack.Screen>
             <Stack.Screen name="Reportes" options={{ title: 'Reportes' }}>
               {() => <ReportesScreen apiService={apiService} />}
+            </Stack.Screen>
+            <Stack.Screen name="CrearReporte" options={{ title: 'Nuevo Reporte' }}>
+              {() => <CrearReporteScreen />}
             </Stack.Screen>
           </>
         ) : (

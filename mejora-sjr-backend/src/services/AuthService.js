@@ -23,16 +23,17 @@ class AuthService {
 
         const secret = process.env.JWT_SECRET || 'supersecreto_sjr';
         const token = jwt.sign(
-            { 
+            {
                 IdUsuario: usuario.IdUsuario, 
                 IdRol: usuario.IdRol, 
+                IdDepartamento: usuario.IdDepartamento,
                 Correo: usuario.Correo 
             }, 
             secret, 
             { expiresIn: '8h' }
         );
 
-        return { token, usuario: { IdUsuario: usuario.IdUsuario, NombreCompleto: usuario.NombreCompleto, IdRol: usuario.IdRol } };
+        return { token, usuario: { IdUsuario: usuario.IdUsuario, NombreCompleto: usuario.NombreCompleto, IdRol: usuario.IdRol, IdDepartamento: usuario.IdDepartamento } };
     }
 }
 
