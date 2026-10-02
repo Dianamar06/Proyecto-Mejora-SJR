@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test tests/ReporteController.test.js"
+    "test": "node --test tests/ReporteController.test.js",
+    "test:coverage": "c8 --reporter=lcov --reporter=text node --test tests/ReporteController.test.js"
   },
   "keywords": [],
   "author": "",
@@ -20,5 +21,8 @@
     "jsonwebtoken": "^9.0.3",
     "mssql": "^11.0.1",
     "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "c8": "^11.0.0"
   }
 }

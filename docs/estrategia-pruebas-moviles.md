@@ -13,7 +13,7 @@ que siguen pendientes de integración.
 | Nivel/tipo | Qué valida en esta app | Herramientas recomendadas |
 |---|---|---|
 | Estático | Tipos, imports, reglas de estilo, errores evidentes | TypeScript (`tsc`), ESLint/Expo lint |
-| Unidad | ViewModels/hooks, validaciones, manejo de estados, serialización, servicios con dependencias simuladas | Runner actual `node:test` + `tsx`; como alternativa integrada con Expo, Jest + `jest-expo`; React Native Testing Library para componentes |
+| Unidad | ViewModels/hooks, validaciones, manejo de estados, serialización, servicios con dependencias simuladas | Runner actual `node:test` + `tsx`; Jest + `jest-expo` es una alternativa de migración, no se usa actualmente; React Native Testing Library para componentes |
 | Componente/UI | Render, interacción, estados de carga/error y mensajes accesibles | React Native Testing Library; evitar snapshots como único criterio |
 | Integración | App/servicio HTTP, persistencia del token, middleware y API en ambiente de prueba | Postman/Newman para API; servidor simulado para fallos/red; dispositivo/emulador |
 | End-to-end | Flujos completos desde la UI hasta la respuesta esperada | Maestro para flujos multiplataforma; Detox cuando se necesite automatización nativa sincronizada |
@@ -29,11 +29,15 @@ En `mejora-sjr-mobile/package.json` ya existen:
 - TypeScript con el comando `npm run typecheck`.
 - Expo lint con `npm run lint`.
 
-Los tests actuales se ejecutan con `npm test`. Expo documenta Jest con el preset
-`jest-expo` para pruebas unitarias y snapshots. Si el equipo migra el runner,
-usar las versiones compatibles instaladas por `npx expo install`; no duplicar
-runners sin una necesidad concreta. React Native Testing Library permite
-comprobar interacciones de UI desde la perspectiva del usuario.
+Los tests móviles actuales se ejecutan con `node:test` a través de `tsx`; los
+seis casos añadidos al backend también usan el runner integrado de Node, junto
+con `node:assert/strict`. Jest no está configurado en este repositorio y
+Supertest no está instalado: se mencionan solo como alternativas futuras para
+pruebas de componentes y de integración HTTP. Para métricas LCOV del backend,
+`c8` ejecuta `node:test`; la opción nativa
+`node --test --experimental-test-coverage` no reemplaza ese reporte LCOV.
+React Native Testing Library permite comprobar interacciones de UI desde la
+perspectiva del usuario.
 
 ## 3. Aplicación al proyecto
 

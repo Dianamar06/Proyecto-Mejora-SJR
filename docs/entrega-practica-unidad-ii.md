@@ -217,10 +217,14 @@ rama objetivo.
 
 - **Node.js `node:test`:** ejecuta las pruebas automatizadas incluidas con Node.
 - **`node:assert/strict`:** comprueba resultados esperados.
+- **`c8`:** mide cobertura V8 de `node:test` y genera LCOV para SonarQube.
 - **Stubs/servicios simulados:** aíslan la lógica del controlador para que las
   pruebas no requieran base de datos.
 - **Postman o Insomnia:** preparan solicitudes HTTP para pruebas manuales.
 - **Newman:** puede ejecutar colecciones Postman en CI cuando se agreguen.
+- **Jest/Supertest:** alternativas consideradas para una futura migración o
+  pruebas HTTP de integración; no están instaladas ni se usan en los casos
+  actuales.
 - **GitHub Actions:** ejecuta pruebas en cada push/PR configurado.
 
 ### 6.2 Comando
@@ -236,10 +240,42 @@ También puede ejecutarse entrando primero a la carpeta del backend:
 ```powershell
 cd .\mejora-sjr-backend
 npm test
+npm run test:coverage
 ```
 
 No se ejecuta `npm test` desde la raíz del monorepo, porque allí no existe un
 `package.json`.
+
+### 6.3 Cobertura para SonarQube
+
+`node --test --experimental-test-coverage` muestra la cobertura nativa de Node,
+pero no genera por sí solo el formato LCOV que ingiere SonarQube. El script
+`npm run test:coverage` usa `c8` sobre `node:test` y produce
+`mejora-sjr-backend/coverage/lcov.info`, ruta declarada en
+[`sonar-project.properties`](../sonar-project.properties). La carpeta de
+cobertura se excluye del control de versiones.
+
+### 6.4 Evidencia de ejecución
+
+La ejecución de GitHub Actions [Mobile CI para el PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37011275899)
+finalizó correctamente en el commit `9a4d038`; el chequeo `validate-and-test`
+pasó con los seis casos AAA y la verificación de tipos móviles. Esta ejecución
+precede al cambio de `c8`, por lo que el reporte LCOV se valida localmente y
+queda pendiente de una nueva ejecución de CI.
+
+La siguiente captura muestra la salida real del paso `Run backend AAA tests`:
+los seis casos pasaron. El job de análisis completo aparece fallido porque se
+detuvo después en la validación de credenciales de SonarQube, no por fallos de
+estas pruebas.
+
+![Salida del job con los seis casos AAA aprobados](evidencias/seis-pruebas-aaa.png)
+
+La ejecución [Tests and SonarQube Cloud del PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37011275933)
+no inició el análisis: se detuvo en la validación porque el secret `SONAR_TOKEN`
+no está configurado. Por tanto, no existe captura de un Quality Gate evaluado
+ni resultado que se pueda presentar como aprobado. Después de configurar los
+secretos y variables, adjuntar en esta sección una captura del dashboard de
+SonarQube Cloud con el estado real del Quality Gate.
 
 ## 7. Quality Gate en SonarQube Cloud
 
@@ -263,8 +299,9 @@ nueva.
 | Cobertura de código nuevo | >= 80 % |
 | Líneas duplicadas nuevas | <= 3 % |
 
-La cobertura requiere reportes LCOV; hasta que se generen y configuren, el
-criterio de cobertura no se puede considerar medido ni aprobado.
+El reporte LCOV ya se genera con `c8` y está conectado a SonarQube. La métrica y
+el cumplimiento del umbral solo podrán confirmarse cuando el análisis real se
+ejecute en SonarQube Cloud.
 
 ### 7.3 Configuración técnica del análisis
 
@@ -366,11 +403,14 @@ resultado, evidencia y defectos. Usar cuentas y datos ficticios.
 - Una ejecución directa de las pruebas móviles con el runner Node produjo
   errores al cargar módulos nativos de Expo/React Native. No se reporta el
   conjunto móvil como aprobado.
-- No se ha ejecutado un análisis real de SonarQube Cloud: faltan importar el
-  proyecto, configurar `SONAR_TOKEN` y `SONAR_ORGANIZATION` en GitHub y correr
-  el workflow.
-- No se genera actualmente un reporte LCOV, por lo que no existe medición de
-  cobertura para el umbral propuesto.
+- La ejecución de GitHub Actions pasó la suite de backend y el typecheck móvil.
+  La ejecución del workflow de SonarQube Cloud se detuvo antes del análisis
+  porque falta el secret `SONAR_TOKEN`; falta también configurar
+  `SONAR_ORGANIZATION`.
+- `npm run test:coverage` genera LCOV con `c8`. La ejecución local actual cubre
+  al 100 % los archivos incluidos en los seis casos (controlador y servicio),
+  pero esto no equivale a un Quality Gate de SonarQube aprobado para todo el
+  proyecto.
 - Las pruebas de integración de `GET /api/reportes` con SQL Server quedan
   pendientes de un ambiente aislado. Los flujos de autenticación y
   almacenamiento en nube también requieren que sus rutas se integren a la rama
@@ -403,6 +443,8 @@ activar las credenciales, importar el proyecto y ejecutar el workflow.
 
 - SonarSource. [GitHub Actions para SonarQube Cloud](https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/ci-based-analysis/github-actions-for-sonarcloud/).
 - SonarSource. [Administración de Quality Gates en SonarQube Cloud](https://docs.sonarsource.com/sonarqube-cloud/standards/managing-quality-gates/).
+- Node.js. [Test runner](https://nodejs.org/api/test.html).
+- c8. [V8 coverage reporting](https://github.com/bcoe/c8).
 - Expo. [Unit testing with Jest](https://docs.expo.dev/develop/unit-testing/).
 - React Native. [Testing overview](https://reactnative.dev/docs/testing-overview).
 - React Native Testing Library. [Documentación](https://callstack.github.io/react-native-testing-library/).

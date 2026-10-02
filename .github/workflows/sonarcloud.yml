@@ -29,9 +29,13 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install backend dependencies
+        working-directory: mejora-sjr-backend
+        run: npm ci
+
       - name: Run backend AAA tests
         working-directory: mejora-sjr-backend
-        run: npm test
+        run: npm run test:coverage
 
       - name: Install mobile dependencies
         working-directory: mejora-sjr-mobile
