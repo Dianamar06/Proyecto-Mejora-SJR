@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test tests/ReporteController.test.js"
+    "test": "node --test tests/ReporteController.test.js",
+    "test:coverage": "npm test && cd .. && node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=mejora-sjr-backend/lcov.info mejora-sjr-backend/tests/ReporteController.test.js"
   },
   "keywords": [],
   "author": "",
