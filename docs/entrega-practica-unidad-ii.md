@@ -257,20 +257,20 @@ cobertura se excluye del control de versiones.
 
 ### 6.4 Evidencia de ejecución
 
-La ejecución de GitHub Actions [Mobile CI para el PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37011275899)
-finalizó correctamente en el commit `9a4d038`; el chequeo `validate-and-test`
-pasó con los seis casos AAA y la verificación de tipos móviles. Esta ejecución
-precede al cambio de `c8`, por lo que el reporte LCOV se valida localmente y
-queda pendiente de una nueva ejecución de CI.
+La ejecución de GitHub Actions [Mobile CI para el PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37016531653)
+finalizó correctamente en el commit `0989e2e`; pasaron el chequeo `validate-and-test`
+y la verificación de tipos móviles. En la ejecución
+[Tests and SonarQube Cloud](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37016531587),
+el paso `Run backend AAA tests` ejecutó `npm run test:coverage` y pasó los seis
+casos con `c8`.
 
-La siguiente captura muestra la salida real del paso `Run backend AAA tests`:
-los seis casos pasaron. El job de análisis completo aparece fallido porque se
-detuvo después en la validación de credenciales de SonarQube, no por fallos de
-estas pruebas.
+La captura muestra la salida real de ese paso: los seis casos pasaron. El job
+de análisis completo aparece fallido porque se detuvo después en la validación
+de credenciales de SonarQube, no por fallos de estas pruebas.
 
 ![Salida del job con los seis casos AAA aprobados](evidencias/seis-pruebas-aaa.png)
 
-La ejecución [Tests and SonarQube Cloud del PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37011275933)
+La ejecución [Tests and SonarQube Cloud del PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37016531587)
 no inició el análisis: se detuvo en la validación porque el secret `SONAR_TOKEN`
 no está configurado. Por tanto, no existe captura de un Quality Gate evaluado
 ni resultado que se pueda presentar como aprobado. Después de configurar los
