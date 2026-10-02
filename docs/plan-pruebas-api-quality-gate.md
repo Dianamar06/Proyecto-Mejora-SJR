@@ -93,26 +93,21 @@ resultado del Quality Gate. Las pruebas móviles con Node no se incluyen en ese
 workflow porque actualmente una de ellas carga módulos nativos de Expo que el
 runner `node:test` no prepara.
 
-La ejecución actual de GitHub Actions aprobó las pruebas AAA y el typecheck
-móvil. El job de SonarQube Cloud se detuvo antes del análisis porque falta
-configurar `SONAR_TOKEN` y `SONAR_ORGANIZATION`; no hay todavía resultado de
-Quality Gate.
+La ejecución más reciente de [Tests and SonarQube Cloud para el PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37019478851)
+(intento 2, commit `0099ada`) aprobó las seis pruebas AAA, el typecheck móvil y
+el análisis. SonarQube Cloud reportó **Passed** con el Quality Gate
+predeterminado **Sonar way**. El análisis indicó que no había suficientes
+líneas nuevas para calcular cobertura; el resultado no confirma el umbral de
+cobertura ni las demás condiciones propuestas en este plan. Consultar la
+[vista de análisis del PR #4](https://sonarcloud.io/dashboard?id=Dianamar06_Proyecto-Mejora-SJR&pullRequest=4).
 
-### Configuración inicial requerida en GitHub y SonarQube Cloud
+### Configuración utilizada en GitHub y SonarQube Cloud
 
-1. En SonarQube Cloud, importar `Dianamar06/Proyecto-Mejora-SJR` desde GitHub.
-   Confirmar que la project key coincide con
-   `Dianamar06_Proyecto-Mejora-SJR`, que ya está declarada en
-   `sonar-project.properties`, y anotar la **organization key** exacta que
-   muestre el tutorial; no asumir que coincide con el nombre visible.
-2. Crear un token de análisis desde la cuenta/organización en SonarQube Cloud.
-   Guardarlo directamente en GitHub como un **Actions secret** con nombre
-   `SONAR_TOKEN`. No pegarlo en el código, chat ni logs.
-3. En `Settings > Secrets and variables > Actions > Variables` del repositorio
-   GitHub, crear estas variables:
-   - `SONAR_ORGANIZATION`: organization key exacta entregada por SonarQube Cloud.
-4. En SonarQube Cloud, crear el Quality Gate **Mejora SJR - Unidad II** con
-   estas condiciones para código nuevo y asignarlo al proyecto:
+La organización, el proyecto y las credenciales se configuraron para ejecutar
+el análisis del PR #4. GitHub Actions utiliza el secret `SONAR_TOKEN` y la
+variable `SONAR_ORGANIZATION`; el token no se incluye en el repositorio ni en
+este documento. La ejecución aprobó **Sonar way**. Aún se debe crear/asignar un
+gate personalizado si se requiere aplicar exactamente estas condiciones:
 
 | Métrica | Condición para aprobar |
 |---|---:|
@@ -125,9 +120,10 @@ Quality Gate.
 | Cobertura de código nuevo | >= 80 % |
 | Líneas duplicadas en código nuevo | <= 3 % |
 
-La política debe ser **fallar ante cualquier condición incumplida**. La
+La política propuesta es **fallar ante cualquier condición incumplida**. La
 configuración de condiciones se administra en SonarQube Cloud, no en el archivo
-de propiedades del proyecto.
+de propiedades del proyecto. El estado **Passed** del PR #4 corresponde a
+**Sonar way**, no prueba que este gate personalizado ya esté activo.
 
 ### Ejecución y verificación
 
@@ -140,9 +136,10 @@ SonarQube Cloud. No aceptar la entrega/PR mientras el Gate no figure como
 
 La cobertura se genera con el reporter LCOV integrado de Node y el workflow usa
 el mismo comando. Se configuró `sonar.javascript.lcov.reportPaths` para leer el
-archivo generado. La cobertura de los archivos bajo prueba puede revisarse en
-el reporte LCOV, pero el Quality Gate completo no está verificado: el scanner
-requiere importar el proyecto y configurar el secret y la variable indicados.
+archivo generado. Aunque el scanner completó el análisis y Sonar way aprobó,
+SonarQube informó que no había suficientes líneas nuevas para calcular
+cobertura. Revisar el resultado y configurar un gate personalizado antes de
+afirmar que se cumplen las condiciones de cobertura propuestas.
 
 ## 7. Criterios de salida
 

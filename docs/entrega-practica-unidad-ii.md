@@ -257,26 +257,22 @@ cobertura no se incluye en el control de versiones.
 
 ### 6.4 Evidencia de ejecución
 
-La ejecución de GitHub Actions [Mobile CI para el PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37016531653)
-finalizó correctamente en el commit `0989e2e`; pasaron el chequeo `validate-and-test`
-y la verificación de tipos móviles. En la ejecución
-[Tests and SonarQube Cloud](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37016531587),
-el paso `Run backend AAA tests` ejecutó `npm run test:coverage` y pasó los seis
-casos. La captura corresponde a la ejecución previa, que usó `c8`; el workflow
-actual usa el reporter LCOV nativo de Node.
-
-La captura muestra la salida real de ese paso: los seis casos pasaron. El job
-de análisis completo aparece fallido porque se detuvo después en la validación
-de credenciales de SonarQube, no por fallos de estas pruebas.
+La ejecución más reciente de [Tests and SonarQube Cloud para el PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37019478851)
+(intento 2, commit `0099ada`) finalizó correctamente. Pasaron los seis casos
+AAA, el chequeo TypeScript móvil y el análisis de SonarQube Cloud. La captura
+de pruebas que sigue corresponde a una ejecución anterior del mismo conjunto
+de seis casos; el workflow actual genera LCOV con el reporter nativo de Node.
 
 ![Salida del job con los seis casos AAA aprobados](evidencias/seis-pruebas-aaa.png)
 
-La ejecución [Tests and SonarQube Cloud del PR #4](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37016531587)
-no inició el análisis: se detuvo en la validación porque el secret `SONAR_TOKEN`
-no está configurado. Por tanto, no existe captura de un Quality Gate evaluado
-ni resultado que se pueda presentar como aprobado. Después de configurar los
-secretos y variables, adjuntar en esta sección una captura del dashboard de
-SonarQube Cloud con el estado real del Quality Gate.
+SonarQube Cloud evaluó el PR #4 con el Quality Gate predeterminado **Sonar way**
+y reportó **Passed**. La vista del PR informa 0 líneas nuevas y advierte que no
+hay suficientes líneas para calcular cobertura; por ello, este resultado no
+demuestra que se haya alcanzado el umbral propuesto de cobertura. El resultado
+se puede consultar en la [vista de análisis de SonarQube Cloud del PR #4](https://sonarcloud.io/dashboard?id=Dianamar06_Proyecto-Mejora-SJR&pullRequest=4).
+La captura documenta el resultado real de este análisis:
+
+![Quality Gate Sonar way aprobado para el PR #4](evidencias/quality-gate-passed-pr4.png)
 
 ## 7. Quality Gate en SonarQube Cloud
 
@@ -301,8 +297,10 @@ nueva.
 | Líneas duplicadas nuevas | <= 3 % |
 
 El reporte LCOV se genera con el reporter integrado de Node y está conectado a
-SonarQube. La métrica y el cumplimiento del umbral solo podrán confirmarse
-cuando el análisis real se ejecute en SonarQube Cloud.
+SonarQube. En el análisis del PR #4, SonarQube Cloud informó que no había
+suficientes líneas nuevas para calcular cobertura. El **Passed** observado
+corresponde al gate predeterminado **Sonar way**; no confirma el cumplimiento
+de todos los umbrales propuestos en esta tabla.
 
 ### 7.3 Configuración técnica del análisis
 
@@ -320,24 +318,15 @@ ramas y ejecución manual.
 
 ### 7.4 Activación en las cuentas
 
-1. En SonarQube Cloud, importar el repositorio GitHub
-   `Dianamar06/Proyecto-Mejora-SJR`.
-2. Confirmar que la project key importada sea
-   `Dianamar06_Proyecto-Mejora-SJR` y anotar la organization key exacta.
-3. Crear un token de análisis en SonarQube Cloud.
-4. En GitHub, en `Settings > Secrets and variables > Actions > Secrets`, crear
-   el secret `SONAR_TOKEN` y pegar ahí el token. No incluirlo en código, chat,
-   capturas ni logs.
-5. En `Settings > Secrets and variables > Actions > Variables`, crear
-   `SONAR_ORGANIZATION` con la organization key copiada de SonarQube Cloud.
-6. En SonarQube Cloud, asignar al proyecto el Quality Gate descrito en la
-   sección 7.2.
-7. Publicar el workflow en GitHub y abrir `Actions > Tests and SonarQube Cloud`
-   para comprobar la ejecución y el estado final.
-
-La configuración de los archivos no crea el proyecto, no genera el token y no
-asigna por sí misma un Quality Gate. Hasta completar esos pasos y ejecutar el
-workflow, el estado del análisis es **pendiente**, no aprobado.
+La integración del PR #4 ya se ejecutó correctamente. El repositorio tiene
+configurados en GitHub Actions el secret `SONAR_TOKEN` y la variable
+`SONAR_ORGANIZATION`; el valor del token no se almacena en este documento.
+SonarQube Cloud evaluó el PR con **Sonar way**. Para reproducir el análisis,
+actualizar el workflow del PR y comprobar el resultado en
+`Actions > Tests and SonarQube Cloud` y en la vista del PR de SonarQube Cloud.
+La tabla de la sección 7.2 continúa siendo una propuesta: el resultado **Passed**
+no demuestra que se haya creado ni asignado un Quality Gate personalizado con
+esas condiciones.
 
 ## 8. Pruebas para aplicaciones móviles
 
@@ -404,12 +393,14 @@ resultado, evidencia y defectos. Usar cuentas y datos ficticios.
 - Una ejecución directa de las pruebas móviles con el runner Node produjo
   errores al cargar módulos nativos de Expo/React Native. No se reporta el
   conjunto móvil como aprobado.
-- La ejecución de GitHub Actions pasó la suite de backend y el typecheck móvil.
-  La ejecución del workflow de SonarQube Cloud se detuvo antes del análisis
-  porque falta el secret `SONAR_TOKEN`; falta también configurar
-  `SONAR_ORGANIZATION`.
-- - `npm run test:coverage` genera LCOV con el reporter nativo de Node. Esto no
-  equivale a un Quality Gate de SonarQube aprobado para todo el proyecto.
+- La ejecución del workflow de GitHub Actions pasó la suite de backend, el
+  typecheck móvil y el análisis de SonarQube Cloud. El Quality Gate
+  predeterminado **Sonar way** quedó en **Passed** para el PR #4. SonarQube
+  reportó 0 líneas nuevas y cobertura no calculable; no se confirma el umbral
+  de cobertura propuesto ni un gate personalizado.
+- `npm run test:coverage` genera LCOV con el reporter nativo de Node. El
+  resultado de cobertura del PR debe interpretarse considerando el aviso de
+  SonarQube sobre la cantidad insuficiente de líneas nuevas.
 - Las pruebas de integración de `GET /api/reportes` con SQL Server quedan
   pendientes de un ambiente aislado. Los flujos de autenticación y
   almacenamiento en nube también requieren que sus rutas se integren a la rama
@@ -435,8 +426,9 @@ componentes conectados.
 Para la app móvil no basta con comprobar el código: también deben validarse
 sesión, navegación, red, permisos, accesibilidad y compatibilidad en dispositivos.
 La integración de SonarQube Cloud automatiza el análisis y puede bloquear una
-entrega cuando el Quality Gate falla; su resultado solo es válido después de
-activar las credenciales, importar el proyecto y ejecutar el workflow.
+entrega cuando el Quality Gate falla. En el PR #4 el análisis se ejecutó y
+**Sonar way** aprobó; la cobertura no se pudo calcular por la cantidad de líneas
+nuevas y los umbrales personalizados propuestos aún requieren configuración.
 
 ## 13. Referencias
 
