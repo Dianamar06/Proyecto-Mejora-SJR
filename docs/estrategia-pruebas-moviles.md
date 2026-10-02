@@ -50,13 +50,12 @@ comprobar interacciones de UI desde la perspectiva del usuario.
 
 ### Brecha conocida entre cliente y API
 
-La HU-12 móvil documenta un body de reporte que omite `IdUsuario`, mientras que
-el controlador del backend lo espera (o usa temporalmente el ID `1`). Antes de
-considerar aprobada la prueba E2E de creación, el equipo debe acordar la fuente
-autorizada del usuario y alinear ambos contratos. La captura de cámara/galería
-está implementada como selector, pero la subida multipart a
-`POST /api/reportes/:id/evidencia` debe validarse cuando el flujo de integración
-correspondiente esté conectado.
+La rama `main` usada como base para la entrega solo expone `GET /api/reportes`;
+los flujos móviles de autenticación, creación de reportes y carga de evidencia
+no se pueden validar contra la API de esa rama hasta que sus rutas se integren.
+La captura de cámara/galería está implementada como selector, pero la subida
+multipart a `POST /api/reportes/:id/evidencia` debe validarse cuando el flujo de
+integración correspondiente esté conectado.
 
 ## 4. Casos manuales E2E prioritarios
 

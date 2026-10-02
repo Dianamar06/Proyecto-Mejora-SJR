@@ -81,25 +81,22 @@ móvil de Mejora SJR.
 Los clientes se comunican con el backend mediante HTTP/JSON. La aplicación
 móvil y el panel no deben acceder directamente a la base de datos.
 
-### 3.2 Endpoints incluidos en el plan
+### 3.2 Endpoint disponible en la rama base
 
 | Método y ruta | Propósito | Acceso definido actualmente |
 |---|---|---|
-| `POST /api/usuarios` | Registrar ciudadano | Público |
-| `POST /api/auth/login` | Autenticar y obtener JWT | Público |
-| `POST /api/reportes` | Crear reporte | Público en el router actual |
-| `POST /api/reportes/:id/evidencia` | Subir evidencia usando multipart y el campo `evidencia` | Público en el router actual |
-| `GET /api/reportes` | Listar y filtrar reportes | Requiere JWT |
-| `PUT /api/reportes/:id/estado` | Actualizar estado | Requiere JWT con `IdRol = 3` |
+| `GET /api/reportes` | Listar todos los reportes | Sin middleware de autenticación en la ruta actual |
 
-El acceso marcado como público refleja el montaje actual de rutas observado en
-el código; debe revisarse con el equipo antes de desplegar a producción.
+Este alcance refleja las rutas disponibles en la rama `main`, usada como base
+para esta entrega. Los flujos de autenticación, creación, actualización y carga
+de evidencia descritos para el sistema móvil requieren integrarse a esta rama
+antes de probarse contra la API real.
 
 ### 3.3 Incluido y excluido
 
-**Incluido:** validaciones del controlador, formato de respuesta, códigos HTTP,
-delegación al servicio, pruebas aisladas con dobles de prueba, calidad estática
-y análisis automatizado.
+**Incluido:** respuesta del listado, códigos HTTP, delegación del controlador
+al servicio y del servicio al repositorio, pruebas aisladas con dobles de
+prueba, calidad estática y análisis automatizado.
 
 **Excluido de los casos unitarios:** conexión real a SQL Server, credenciales
 reales, servicio real de almacenamiento y autorización del ambiente productivo.
@@ -109,11 +106,11 @@ Esos elementos requieren un ambiente de integración aislado.
 
 ### 4.1 Estrategia
 
-1. **Unidad del controlador:** verificar validaciones y respuestas HTTP sin
-   conectar con base de datos; sustituir el servicio por una implementación
-   simulada.
-2. **Integración HTTP:** iniciar el backend con una base de datos y servicios
-   exclusivos de pruebas; cubrir rutas, middleware, consultas y serialización.
+1. **Unidad del controlador y servicio:** verificar respuesta HTTP, errores y
+   delegación sin conectar con base de datos; sustituir las dependencias por
+   implementaciones simuladas.
+2. **Integración HTTP:** iniciar el backend con una base de datos exclusiva de
+   pruebas; cubrir `GET /api/reportes`, consulta y serialización.
 3. **Aceptación manual o automatizada:** usar Postman/Insomnia para preparar y
    revisar solicitudes; utilizar Newman si se automatiza una colección de
    Postman en CI.
@@ -124,8 +121,8 @@ Esos elementos requieren un ambiente de integración aislado.
 
 - Node.js y npm en versiones compatibles con los proyectos.
 - Ambiente de pruebas separado de producción.
-- Usuario, categorías y reportes semilla ficticios para integración.
-- Variables de conexión y `JWT_SECRET` propios del ambiente de pruebas.
+- Reportes semilla ficticios para integración.
+- Variables de conexión propias del ambiente de pruebas.
 - No guardar contraseñas, tokens, datos personales ni llaves en el repositorio.
 - Registrar commit, fecha, ambiente, resultado esperado, resultado obtenido y
   evidencia sin secretos.
@@ -134,98 +131,85 @@ Esos elementos requieren un ambiente de integración aislado.
 
 - Una base de datos o almacenamiento fuera de servicio puede impedir pruebas de
   integración; no afecta la ejecución de pruebas unitarias con stubs.
-- El cliente móvil documenta la omisión de `IdUsuario` al crear un reporte,
-  mientras que el controlador del backend lo necesita y actualmente puede
-  asignar temporalmente el valor `1`. El contrato debe alinearse antes de
-  aprobar el flujo móvil completo.
-- La autorización de creación de reportes y subida de evidencia debe confirmarse
-  con el equipo; el router actual no aplica middleware de autenticación a esas
-  rutas.
+- En la rama base de esta entrega no están expuestos los endpoints de
+  autenticación, creación, actualización ni carga de evidencia. Los escenarios
+  móviles que dependen de ellos no se deben reportar como pruebas E2E aprobadas
+  hasta que se integren y se valide su contrato.
 
 ## 5. Casos de prueba con patrón AAA
 
 Los seis casos están automatizados en
 [`mejora-sjr-backend/tests/ReporteController.test.js`](../mejora-sjr-backend/tests/ReporteController.test.js).
-En cada uno, **Arrange** prepara el controlador, la solicitud y el servicio
-simulado; **Act** ejecuta el método del controlador; **Assert** comprueba el
-resultado observable y, cuando corresponde, que el servicio no se invoque.
+Cuatro cubren el controlador de `GET /api/reportes` y dos la delegación del
+servicio al repositorio. En cada caso, **Arrange** prepara dependencias
+simuladas; **Act** invoca el método bajo prueba; **Assert** comprueba el
+resultado observable.
 
-### API-01 — Crear reporte sin campos requeridos
+### API-01 — Listar reportes existentes
 
-- **Endpoint/operación:** `POST /api/reportes`
-- **Arrange:** preparar un body incompleto que solo contenga `Titulo` y un
-  servicio simulado que registre si fue invocado.
-- **Act:** ejecutar `crearReporte(req, res)`.
-- **Assert:** verificar HTTP 400, `success: false`, que el mensaje indique un
-  campo faltante y que el servicio no haya sido invocado.
-- **Resultado esperado:** la solicitud inválida se rechaza en el controlador.
+- **Endpoint/operación:** `GET /api/reportes`
+- **Arrange:** preparar un controlador cuyo servicio devuelve dos reportes.
+- **Act:** ejecutar `listar(req, res)`.
+- **Assert:** verificar HTTP 200, `success: true`, el arreglo esperado y una
+  sola invocación al servicio.
+- **Resultado esperado:** la respuesta contiene todos los reportes devueltos.
 
-### API-02 — Crear reporte con coordenada no numérica
+### API-02 — Listar sin resultados
 
-- **Endpoint/operación:** `POST /api/reportes`
-- **Arrange:** preparar todos los campos obligatorios, con `UbicacionLatitud`
-  como texto, y un servicio simulado.
-- **Act:** ejecutar `crearReporte(req, res)`.
-- **Assert:** verificar HTTP 400, mensaje de coordenadas numéricas y que el
-  servicio no haya sido invocado.
-- **Resultado esperado:** las coordenadas no numéricas se rechazan.
+- **Endpoint/operación:** `GET /api/reportes`
+- **Arrange:** preparar un servicio simulado que devuelve `[]`.
+- **Act:** ejecutar `listar(req, res)`.
+- **Assert:** verificar HTTP 200 y `data` como arreglo vacío.
+- **Resultado esperado:** no encontrar registros se considera una respuesta
+  válida.
 
-### API-03 — Crear reporte válido
+### API-03 — Error al obtener reportes
 
-- **Endpoint/operación:** `POST /api/reportes`
-- **Arrange:** preparar título, descripción, coordenadas numéricas, categoría e
-  identificador de usuario. Configurar el servicio para devolver el reporte con
-  `IdReporte: 23`.
-- **Act:** ejecutar `crearReporte(req, res)`.
-- **Assert:** verificar HTTP 201, `success: true`, que la respuesta contenga
-  `IdReporte: 23` y que el servicio haya recibido el usuario esperado.
-- **Resultado esperado:** la creación se confirma con el reporte devuelto por
-  el servicio.
+- **Endpoint/operación:** `GET /api/reportes`
+- **Arrange:** preparar un servicio que lanza un error interno.
+- **Act:** ejecutar `listar(req, res)`.
+- **Assert:** verificar HTTP 500 y el mensaje genérico configurado, sin detalles
+  internos.
+- **Resultado esperado:** el fallo se informa sin exponer información interna.
 
-### API-04 — Actualizar estado con identificador inválido
+### API-04 — Invocar el handler como callback de Express
 
-- **Endpoint/operación:** `PUT /api/reportes/:id/estado`
-- **Arrange:** preparar `id=abc`, un estado válido y un servicio simulado con
-  indicador de invocación.
-- **Act:** ejecutar `actualizarEstado(req, res)`.
-- **Assert:** verificar HTTP 400, mensaje de identificador entero inválido y
-  que el servicio no haya sido invocado.
-- **Resultado esperado:** un ID inválido se rechaza antes de acceder al servicio.
+- **Endpoint/operación:** `GET /api/reportes`
+- **Arrange:** guardar una referencia separada a `controller.listar` y preparar
+  un servicio simulado.
+- **Act:** invocar la referencia separada como lo hace Express.
+- **Assert:** verificar HTTP 200 y los datos esperados.
+- **Resultado esperado:** el handler conserva el enlace al controlador.
 
-### API-05 — Actualizar estado sin proporcionar estado
+### API-05 — El servicio devuelve lo obtenido por el repositorio
 
-- **Endpoint/operación:** `PUT /api/reportes/:id/estado`
-- **Arrange:** preparar `id=23`, body vacío y un servicio simulado.
-- **Act:** ejecutar `actualizarEstado(req, res)`.
-- **Assert:** verificar HTTP 400, mensaje que indique que el estado es requerido
-  y que el servicio no haya sido invocado.
-- **Resultado esperado:** la solicitud incompleta se rechaza.
+- **Operación:** `ReporteService.listarReportes()`
+- **Arrange:** preparar un repositorio simulado que devuelve reportes.
+- **Act:** ejecutar `listarReportes()`.
+- **Assert:** verificar que el resultado coincide y que el repositorio se invoca
+  una sola vez.
+- **Resultado esperado:** el servicio delega la consulta al repositorio.
 
-### API-06 — Actualizar estado correctamente
+### API-06 — El servicio propaga errores del repositorio
 
-- **Endpoint/operación:** `PUT /api/reportes/:id/estado`
-- **Arrange:** preparar `id=23`, `IdEstado: 3` y un servicio simulado que devuelva
-  esos datos.
-- **Act:** ejecutar `actualizarEstado(req, res)`.
-- **Assert:** verificar HTTP 200, `success: true`, llamada al servicio con
-  `(23, 3)` y datos correctos en la respuesta.
-- **Resultado esperado:** el controlador delega la actualización y devuelve el
-  reporte actualizado.
+- **Operación:** `ReporteService.listarReportes()`
+- **Arrange:** preparar un repositorio simulado que rechaza con un error
+  conocido.
+- **Act:** ejecutar `listarReportes()`.
+- **Assert:** verificar que la promesa rechaza con el mismo error para que el
+  controlador lo gestione.
+- **Resultado esperado:** el error no se oculta en la capa de servicio.
 
 ### 5.1 Casos de integración complementarios
 
 | ID | Solicitud | Resultado esperado |
 |---|---|---|
-| INT-01 | Login con credenciales de prueba válidas | HTTP 200, token presente y usuario sin hash de contraseña |
-| INT-02 | Login con contraseña incorrecta | HTTP 401 y sin token |
-| INT-03 | `GET /api/reportes` sin token | HTTP 403 |
-| INT-04 | `GET /api/reportes?estado=1&categoria=1` con JWT válido | HTTP 200, `data` es arreglo y los filtros son aplicados |
-| INT-05 | `PUT /api/reportes/23/estado` sin rol 3 | HTTP 403 y sin actualización |
-| INT-06 | Subida de evidencia sin archivo `evidencia` | HTTP 400 |
-| INT-07 | Crear reporte con categoría inexistente | HTTP 400 y no se crea registro |
+| INT-01 | `GET /api/reportes` con base de datos de prueba disponible | HTTP 200 y `data` es un arreglo de reportes |
+| INT-02 | `GET /api/reportes` cuando la base de datos de prueba no está disponible | HTTP 500 con respuesta genérica y sin detalles internos |
 
-Estos casos requieren datos y servicios de prueba configurados y no son
-sustituidos por los seis casos unitarios.
+Los flujos móviles de autenticación, creación, actualización y carga de evidencia
+quedan fuera de la integración HTTP hasta que sus rutas estén disponibles en la
+rama objetivo.
 
 ## 6. Automatización y ejecución de las pruebas API
 
@@ -387,8 +371,10 @@ resultado, evidencia y defectos. Usar cuentas y datos ficticios.
   el workflow.
 - No se genera actualmente un reporte LCOV, por lo que no existe medición de
   cobertura para el umbral propuesto.
-- Las pruebas de integración con SQL Server, API real, autenticación y
-  almacenamiento en nube quedan pendientes de un ambiente aislado.
+- Las pruebas de integración de `GET /api/reportes` con SQL Server quedan
+  pendientes de un ambiente aislado. Los flujos de autenticación y
+  almacenamiento en nube también requieren que sus rutas se integren a la rama
+  objetivo.
 
 ### Criterios de salida
 
@@ -402,10 +388,10 @@ resultado, evidencia y defectos. Usar cuentas y datos ficticios.
 ## 12. Conclusiones
 
 El patrón AAA hace que cada prueba describa con claridad la preparación, la
-acción y el resultado esperado. Las pruebas unitarias del controlador
-comprueban validaciones importantes sin depender de SQL Server, mientras que
-las pruebas de integración y E2E completan la verificación de los componentes
-conectados.
+acción y el resultado esperado. Las pruebas unitarias comprueban la respuesta
+del listado y la delegación entre capas sin depender de SQL Server, mientras
+que las pruebas de integración y E2E completan la verificación de los
+componentes conectados.
 
 Para la app móvil no basta con comprobar el código: también deben validarse
 sesión, navegación, red, permisos, accesibilidad y compatibilidad en dispositivos.

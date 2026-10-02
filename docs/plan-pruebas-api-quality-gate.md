@@ -13,22 +13,19 @@ distintos, deben cotejarse antes de entregar.
 
 ## 2. Sistema bajo prueba y alcance
 
-El backend está implementado con Node.js y Express. Las rutas observadas son:
+El backend de la rama `main` está implementado con Node.js y Express. En esta
+rama, la ruta observada para reportes es:
 
 | Método y ruta | Propósito | Acceso observado |
 |---|---|---|
-| `POST /api/usuarios` | Registrar ciudadano | Público |
-| `POST /api/auth/login` | Autenticar y obtener JWT | Público |
-| `POST /api/reportes` | Crear reporte | Público en el router actual |
-| `POST /api/reportes/:id/evidencia` | Subir evidencia multipart (`evidencia`) | Público en el router actual |
-| `GET /api/reportes` | Listar y filtrar reportes | JWT requerido |
-| `PUT /api/reportes/:id/estado` | Actualizar estado | JWT y rol `IdRol = 3` |
+| `GET /api/reportes` | Listar todos los reportes | Sin middleware de autenticación en la ruta actual |
 
-Se prueban las validaciones de entrada, la respuesta HTTP/JSON y la delegación
-del controlador a su servicio. La persistencia real, el proveedor de imágenes,
-la verificación de credenciales contra SQL Server y los permisos de producción
-requieren pruebas de integración con servicios configurados; no se simulan
-como si fueran una validación end-to-end.
+Los casos automatizados verifican la respuesta HTTP/JSON del listado y la
+delegación entre controlador, servicio y repositorio. Otras operaciones
+(autenticación, creación, actualización o evidencia) no están expuestas por las
+rutas de esta rama y se consideran fuera del alcance de esta entrega. La
+persistencia real requiere pruebas de integración con una base de datos aislada;
+no se simula como si fuera una validación end-to-end.
 
 ## 3. Estrategia y entorno
 
@@ -52,12 +49,12 @@ Cada caso mantiene separados Preparar, Actuar y Verificar.
 
 | ID | Endpoint/escenario | Preparar (Arrange) | Actuar (Act) | Verificar (Assert) |
 |---|---|---|---|---|
-| API-01 | Crear sin campos requeridos | Controlador con servicio espía y body incompleto | Invocar `crearReporte` | HTTP 400, `success: false`, mensaje identifica el faltante, servicio no invocado |
-| API-02 | Crear con latitud no numérica | Body con todos los campos requeridos, latitud como texto y servicio espía | Invocar `crearReporte` | HTTP 400, error de coordenadas numéricas, servicio no invocado |
-| API-03 | Crear reporte válido | Body con título, descripción, coordenadas numéricas, categoría y usuario; servicio simulado | Invocar `crearReporte` | HTTP 201, `success: true`, respuesta contiene el ID devuelto y servicio recibió el usuario |
-| API-04 | Actualizar con ID inválido | Parámetro `id=abc` y servicio espía | Invocar `actualizarEstado` | HTTP 400, mensaje de ID entero válido, servicio no invocado |
-| API-05 | Actualizar sin estado | ID válido, body vacío y servicio espía | Invocar `actualizarEstado` | HTTP 400, mensaje de estado requerido, servicio no invocado |
-| API-06 | Actualizar con datos válidos | ID `23`, `IdEstado: 3` y servicio simulado | Invocar `actualizarEstado` | HTTP 200, `success: true`, servicio recibió `(23, 3)` y JSON devuelve los datos |
+| API-01 | Listar reportes existentes | Controlador con servicio simulado que devuelve dos reportes | Invocar `listar` | HTTP 200, `success: true`, arreglo esperado y servicio invocado una vez |
+| API-02 | Listar sin resultados | Servicio simulado que devuelve `[]` | Invocar `listar` | HTTP 200 y `data` es un arreglo vacío |
+| API-03 | Error al obtener reportes | Servicio simulado que lanza un error interno | Invocar `listar` | HTTP 500 y mensaje genérico sin detalles internos |
+| API-04 | Invocar el handler como callback de Express | Controlador con servicio simulado y referencia separada a `listar` | Invocar el handler separado | HTTP 200 y datos correctos; se conserva el enlace al controlador |
+| API-05 | El servicio obtiene datos del repositorio | Servicio con repositorio simulado | Invocar `listarReportes` | Devuelve los datos del repositorio y lo invoca una vez |
+| API-06 | El servicio propaga errores del repositorio | Repositorio simulado que rechaza con un error conocido | Invocar `listarReportes` | La promesa rechaza con el mismo error para que el controlador lo gestione |
 
 ### Ejecución
 
@@ -68,23 +65,15 @@ npm test
 
 ## 5. Casos de integración/aceptación recomendados
 
-Preparar previamente un usuario y datos semilla no productivos. Para las rutas
-protegidas, iniciar sesión y usar `Authorization: Bearer <token>`.
+Preparar una base de datos y registros semilla ficticios en un ambiente aislado.
 
 | ID | Solicitud | Resultado esperado |
 |---|---|---|
-| INT-01 | `POST /api/auth/login` con credenciales válidas de prueba | HTTP 200, `success: true`, token JWT presente y usuario sin hash de contraseña |
-| INT-02 | `POST /api/auth/login` con contraseña incorrecta | HTTP 401, `success: false`, sin token |
-| INT-03 | `GET /api/reportes` sin `Authorization` | HTTP 403, mensaje de token no proporcionado |
-| INT-04 | `GET /api/reportes?estado=1&categoria=1` con JWT válido | HTTP 200, `data` es arreglo, filtros aplicados y `total` corresponde al arreglo |
-| INT-05 | `PUT /api/reportes/23/estado` sin token o con rol distinto a 3 | HTTP 403, servicio de actualización no debe ejecutarse |
-| INT-06 | `POST /api/reportes/23/evidencia` sin archivo `evidencia` | HTTP 400, mensaje de archivo requerido |
-| INT-07 | `POST /api/reportes` con `IdCategoria` inexistente | HTTP 400 según el manejo actual del servicio; no debe crearse registro |
+| INT-01 | `GET /api/reportes` con base de datos de prueba disponible | HTTP 200 y `data` contiene el arreglo de reportes |
+| INT-02 | `GET /api/reportes` cuando la base de datos de prueba no está disponible | HTTP 500 con mensaje genérico; la respuesta no expone detalles internos |
 
-En las solicitudes de creación, el backend actual espera `IdUsuario` y lo
-predetermina en `1` solo si el body no lo proporciona. El cliente móvil HU-12
-declara un payload sin `IdUsuario`; resolver esa diferencia de contrato es un
-prerrequisito para una prueba integrada exitosa con el cliente real.
+Las pruebas de autenticación, creación, actualización y carga de evidencia se
+podrán agregar cuando esas rutas estén incorporadas a la rama objetivo.
 
 ## 6. Quality Gate en SonarQube Cloud
 

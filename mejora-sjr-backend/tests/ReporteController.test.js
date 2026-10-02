@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const ReporteController = require('../src/controllers/ReporteController');
+const ReporteService = require('../src/services/ReporteService');
 
 function createResponse() {
     return {
@@ -17,151 +18,122 @@ function createResponse() {
     };
 }
 
-function createController(service = {}) {
+function createController(service) {
     return new ReporteController(service);
 }
 
-test('POST /api/reportes rechaza los campos requeridos faltantes', async () => {
+test('GET /api/reportes responde con la lista de reportes', async () => {
     // Arrange
-    let serviceCalled = false;
+    const reportes = [{ IdReporte: 1 }, { IdReporte: 2 }];
+    let serviceCalls = 0;
     const controller = createController({
-        async crearReporte() {
-            serviceCalled = true;
+        async listarReportes() {
+            serviceCalls += 1;
+            return reportes;
         }
     });
-    const req = { body: { Titulo: 'Bache' } };
+    const req = {};
     const res = createResponse();
 
     // Act
-    await controller.crearReporte(req, res);
-
-    // Assert
-    assert.equal(res.statusCode, 400);
-    assert.equal(res.body.success, false);
-    assert.match(res.body.message, /Descripcion/);
-    assert.equal(serviceCalled, false);
-});
-
-test('POST /api/reportes rechaza coordenadas no numéricas', async () => {
-    // Arrange
-    let serviceCalled = false;
-    const controller = createController({
-        async crearReporte() {
-            serviceCalled = true;
-        }
-    });
-    const req = {
-        body: {
-            Titulo: 'Bache',
-            Descripcion: 'Bache frente al parque',
-            UbicacionLatitud: '21.12',
-            UbicacionLongitud: -101.68,
-            IdCategoria: 1,
-            IdUsuario: 1
-        }
-    };
-    const res = createResponse();
-
-    // Act
-    await controller.crearReporte(req, res);
-
-    // Assert
-    assert.equal(res.statusCode, 400);
-    assert.equal(res.body.success, false);
-    assert.match(res.body.message, /valores numéricos/);
-    assert.equal(serviceCalled, false);
-});
-
-test('POST /api/reportes crea un reporte válido y responde 201', async () => {
-    // Arrange
-    const payload = {
-        Titulo: 'Bache',
-        Descripcion: 'Bache frente al parque',
-        UbicacionLatitud: 21.12,
-        UbicacionLongitud: -101.68,
-        IdCategoria: 1,
-        IdUsuario: 7
-    };
-    let receivedPayload;
-    const controller = createController({
-        async crearReporte(data) {
-            receivedPayload = data;
-            return { ...data, IdReporte: 23, IdEstado: 1 };
-        }
-    });
-    const req = { body: { ...payload } };
-    const res = createResponse();
-
-    // Act
-    await controller.crearReporte(req, res);
-
-    // Assert
-    assert.equal(res.statusCode, 201);
-    assert.equal(res.body.success, true);
-    assert.equal(res.body.data.IdReporte, 23);
-    assert.equal(receivedPayload.IdUsuario, 7);
-});
-
-test('PUT /api/reportes/:id/estado rechaza un identificador inválido', async () => {
-    // Arrange
-    let serviceCalled = false;
-    const controller = createController({
-        async actualizarEstado() {
-            serviceCalled = true;
-        }
-    });
-    const req = { params: { id: 'abc' }, body: { IdEstado: 2 } };
-    const res = createResponse();
-
-    // Act
-    await controller.actualizarEstado(req, res);
-
-    // Assert
-    assert.equal(res.statusCode, 400);
-    assert.equal(res.body.success, false);
-    assert.match(res.body.message, /número entero válido/);
-    assert.equal(serviceCalled, false);
-});
-
-test('PUT /api/reportes/:id/estado rechaza la ausencia de estado', async () => {
-    // Arrange
-    let serviceCalled = false;
-    const controller = createController({
-        async actualizarEstado() {
-            serviceCalled = true;
-        }
-    });
-    const req = { params: { id: '23' }, body: {} };
-    const res = createResponse();
-
-    // Act
-    await controller.actualizarEstado(req, res);
-
-    // Assert
-    assert.equal(res.statusCode, 400);
-    assert.equal(res.body.success, false);
-    assert.match(res.body.message, /es requerido/);
-    assert.equal(serviceCalled, false);
-});
-
-test('PUT /api/reportes/:id/estado actualiza el estado y responde 200', async () => {
-    // Arrange
-    let receivedArguments;
-    const controller = createController({
-        async actualizarEstado(id, estado) {
-            receivedArguments = [id, estado];
-            return { IdReporte: id, IdEstado: estado };
-        }
-    });
-    const req = { params: { id: '23' }, body: { IdEstado: 3 } };
-    const res = createResponse();
-
-    // Act
-    await controller.actualizarEstado(req, res);
+    await controller.listar(req, res);
 
     // Assert
     assert.equal(res.statusCode, 200);
-    assert.equal(res.body.success, true);
-    assert.deepEqual(receivedArguments, [23, 3]);
-    assert.deepEqual(res.body.data, { IdReporte: 23, IdEstado: 3 });
+    assert.deepEqual(res.body, { success: true, data: reportes });
+    assert.equal(serviceCalls, 1);
+});
+
+test('GET /api/reportes responde con una lista vacía cuando no hay reportes', async () => {
+    // Arrange
+    const controller = createController({
+        async listarReportes() {
+            return [];
+        }
+    });
+    const req = {};
+    const res = createResponse();
+
+    // Act
+    await controller.listar(req, res);
+
+    // Assert
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { success: true, data: [] });
+});
+
+test('GET /api/reportes convierte un error del servicio en respuesta 500 genérica', async () => {
+    // Arrange
+    const controller = createController({
+        async listarReportes() {
+            throw new Error('Fallo interno de la base de datos');
+        }
+    });
+    const req = {};
+    const res = createResponse();
+
+    // Act
+    await controller.listar(req, res);
+
+    // Assert
+    assert.equal(res.statusCode, 500);
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'Ocurrió un error al obtener los reportes.'
+    });
+});
+
+test('GET /api/reportes conserva el enlace del controlador al invocarse como callback', async () => {
+    // Arrange
+    const reportes = [{ IdReporte: 7 }];
+    const controller = createController({
+        async listarReportes() {
+            return reportes;
+        }
+    });
+    const handler = controller.listar;
+    const req = {};
+    const res = createResponse();
+
+    // Act
+    await handler(req, res);
+
+    // Assert
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body.data, reportes);
+});
+
+test('ReporteService devuelve los reportes obtenidos por el repositorio', async () => {
+    // Arrange
+    const reportes = [{ IdReporte: 11 }];
+    let repositoryCalls = 0;
+    const service = new ReporteService({
+        async obtenerTodos() {
+            repositoryCalls += 1;
+            return reportes;
+        }
+    });
+
+    // Act
+    const result = await service.listarReportes();
+
+    // Assert
+    assert.deepEqual(result, reportes);
+    assert.equal(repositoryCalls, 1);
+});
+
+test('ReporteService propaga los errores del repositorio para que el controlador los gestione', async () => {
+    // Arrange
+    const repositoryError = new Error('Error de consulta');
+    const service = new ReporteService({
+        async obtenerTodos() {
+            throw repositoryError;
+        }
+    });
+
+    // Act
+    const action = service.listarReportes();
+
+    // Assert
+    await assert.rejects(action, (error) => error === repositoryError);
 });
