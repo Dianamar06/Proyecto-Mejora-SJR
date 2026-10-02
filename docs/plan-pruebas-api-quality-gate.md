@@ -32,9 +32,8 @@ no se simula como si fuera una validación end-to-end.
 - **Pruebas de unidad/contrato del controlador:** `node:test`,
   `node:assert/strict` y servicios sustitutos. Se ejecutan sin SQL Server ni
   credenciales reales. Jest no es el runner de estos casos.
-- **Cobertura:** `c8` envuelve a `node:test` para emitir el archivo LCOV que
-  requiere SonarQube; `node --test --experimental-test-coverage` por sí solo
-  presenta cobertura nativa, pero no genera el archivo LCOV.
+- **Cobertura:** el reporter `lcov` integrado de Node genera el archivo que
+  requiere SonarQube mediante `node --test --experimental-test-coverage`.
 - **Pruebas de integración HTTP:** ejecutar el backend contra una base de datos
   y configuración de prueba aisladas. Validar rutas, middleware, serialización y
   consultas. No apuntar pruebas destructivas a producción.
@@ -68,8 +67,9 @@ npm test
 npm run test:coverage
 ```
 
-`npm run test:coverage` genera `coverage/lcov.info`; la carpeta `coverage/` se
-mantiene fuera del control de versiones.
+`npm run test:coverage` ejecuta las pruebas y genera
+`mejora-sjr-backend/lcov.info` con rutas de fuente relativas a la raíz del
+repositorio; el archivo se mantiene fuera del control de versiones.
 
 ## 5. Casos de integración/aceptación recomendados
 
@@ -138,11 +138,11 @@ no aprueba el Gate. Revisar el resultado en **Actions** y en el proyecto de
 SonarQube Cloud. No aceptar la entrega/PR mientras el Gate no figure como
 **Passed**.
 
-La cobertura se genera mediante `c8` en formato LCOV y el workflow usa el mismo
-comando. Se configuró `sonar.javascript.lcov.reportPaths` para leer el archivo
-generado. La cobertura observada localmente en los archivos probados es 100 %,
-pero el Quality Gate completo no está verificado: el scanner requiere importar
-el proyecto y configurar el secret y la variable indicados.
+La cobertura se genera con el reporter LCOV integrado de Node y el workflow usa
+el mismo comando. Se configuró `sonar.javascript.lcov.reportPaths` para leer el
+archivo generado. La cobertura de los archivos bajo prueba puede revisarse en
+el reporte LCOV, pero el Quality Gate completo no está verificado: el scanner
+requiere importar el proyecto y configurar el secret y la variable indicados.
 
 ## 7. Criterios de salida
 

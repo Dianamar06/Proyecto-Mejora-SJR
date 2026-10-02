@@ -34,8 +34,8 @@ seis casos añadidos al backend también usan el runner integrado de Node, junto
 con `node:assert/strict`. Jest no está configurado en este repositorio y
 Supertest no está instalado: se mencionan solo como alternativas futuras para
 pruebas de componentes y de integración HTTP. Para métricas LCOV del backend,
-`c8` ejecuta `node:test`; la opción nativa
-`node --test --experimental-test-coverage` no reemplaza ese reporte LCOV.
+el reporter integrado `node --test --experimental-test-coverage
+--test-reporter=lcov` escribe el formato que consume SonarQube.
 React Native Testing Library permite comprobar interacciones de UI desde la
 perspectiva del usuario.
 
