@@ -1,0 +1,66 @@
+name: Tests and SonarQube Cloud
+
+on:
+  push:
+    branches:
+      - main
+      - sP3
+  pull_request:
+    branches:
+      - main
+      - sP3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-analyze:
+    name: Tests and SonarQube Cloud analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run backend AAA tests
+        working-directory: mejora-sjr-backend
+        run: npm test
+
+      - name: Install mobile dependencies
+        working-directory: mejora-sjr-mobile
+        run: npm ci
+
+      - name: Check mobile TypeScript
+        working-directory: mejora-sjr-mobile
+        run: npm run typecheck
+
+      - name: Validate SonarQube Cloud configuration
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "::error::Add the SONAR_TOKEN secret in GitHub repository settings."
+            exit 1
+          fi
+          if [ -z "$SONAR_ORGANIZATION" ]; then
+            echo "::error::Add the SONAR_ORGANIZATION repository variable in GitHub settings."
+            exit 1
+          fi
+
+      - name: Analyze with SonarQube Cloud and wait for Quality Gate
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          args: >
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.qualitygate.wait=true
