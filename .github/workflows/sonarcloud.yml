@@ -29,13 +29,25 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install backend dependencies
+        working-directory: mejora-sjr-backend
+        run: npm ci --ignore-scripts
+
+      - name: Set up Firebase runtime
+        working-directory: mejora-sjr-backend
+        run: npm rebuild @firebase/util
+
       - name: Run backend AAA tests
         working-directory: mejora-sjr-backend
-        run: npm test
+        run: npm run test:coverage
 
       - name: Install mobile dependencies
         working-directory: mejora-sjr-mobile
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Set up esbuild binary
+        working-directory: mejora-sjr-mobile
+        run: npm rebuild esbuild
 
       - name: Check mobile TypeScript
         working-directory: mejora-sjr-mobile
@@ -56,7 +68,7 @@ jobs:
           fi
 
       - name: Analyze with SonarQube Cloud and wait for Quality Gate
-        uses: SonarSource/sonarqube-scan-action@v8
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io

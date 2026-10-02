@@ -64,7 +64,10 @@ Cada caso mantiene separados Preparar, Actuar y Verificar.
 ```powershell
 cd mejora-sjr-backend
 npm test
+npm run test:coverage
 ```
+
+`test:coverage` vuelve a ejecutar las pruebas y genera `lcov.info` para SonarQube.
 
 ## 5. Casos de integración/aceptación recomendados
 
@@ -95,24 +98,10 @@ verifica los tipos de la app móvil, analiza el código con SonarQube Cloud y
 espera el resultado del Quality Gate. Las pruebas móviles con Node no se
 incluyen en el workflow porque actualmente una de ellas carga módulos nativos
 de Expo que el runner `node:test` no prepara.
-El análisis aún requiere un proyecto creado en SonarQube Cloud y configuración
-del repositorio de GitHub.
-
-### Configuración inicial requerida en GitHub y SonarQube Cloud
-
-1. En SonarQube Cloud, importar `Dianamar06/Proyecto-Mejora-SJR` desde GitHub.
-   Confirmar que la project key coincide con
-   `Dianamar06_Proyecto-Mejora-SJR`, que ya está declarada en
-   `sonar-project.properties`, y anotar la **organization key** exacta que
-   muestre el tutorial; no asumir que coincide con el nombre visible.
-2. Crear un token de análisis desde la cuenta/organización en SonarQube Cloud.
-   Guardarlo directamente en GitHub como un **Actions secret** con nombre
-   `SONAR_TOKEN`. No pegarlo en el código, chat ni logs.
-3. En `Settings > Secrets and variables > Actions > Variables` del repositorio
-   GitHub, crear estas variables:
-   - `SONAR_ORGANIZATION`: organization key exacta entregada por SonarQube Cloud.
-4. En SonarQube Cloud, crear el Quality Gate **Mejora SJR - Unidad II** con
-   estas condiciones para código nuevo y asignarlo al proyecto:
+El repositorio ya tiene configurados en GitHub Actions el secret `SONAR_TOKEN`
+y la variable `SONAR_ORGANIZATION`. El token no se incluye en código, chat,
+capturas ni logs. La propuesta de condiciones siguientes requiere crear y
+asignar un Quality Gate personalizado en SonarQube Cloud:
 
 | Métrica | Condición para aprobar |
 |---|---:|
@@ -125,9 +114,10 @@ del repositorio de GitHub.
 | Cobertura de código nuevo | >= 80 % |
 | Líneas duplicadas en código nuevo | <= 3 % |
 
-La política debe ser **fallar ante cualquier condición incumplida**. La
+La política propuesta es **fallar ante cualquier condición incumplida**. La
 configuración de condiciones se administra en SonarQube Cloud, no en el archivo
-de propiedades del proyecto.
+de propiedades del proyecto. El gate predeterminado **Sonar way** es distinto
+y su estado no prueba que se apliquen estos umbrales personalizados.
 
 ### Ejecución y verificación
 
@@ -138,14 +128,11 @@ no aprueba el Gate. Revisar el resultado en **Actions** y en el proyecto de
 SonarQube Cloud. No aceptar la entrega/PR mientras el Gate no figure como
 **Passed**.
 
-La cobertura requiere reportes LCOV generados por los runners y configurados
-con `sonar.javascript.lcov.reportPaths`. En este repositorio aún no se generan
-esos reportes: las pruebas existentes y las agregadas verifican comportamiento,
-pero no constituyen por sí solas evidencia de cobertura para SonarQube. Por eso
-el umbral de cobertura del 80 % no se considera listo para exigirse al Gate
-hasta conectar el reporte LCOV. El workflow y las propiedades quedan
-configurados, pero el primer análisis solo podrá correr después de importar el
-proyecto en SonarQube Cloud y definir el secret y las variables anteriores.
+El comando `npm run test:coverage` ejecuta los seis casos y genera LCOV con el
+reporter integrado de Node. El workflow invoca el mismo comando, y
+`sonar.javascript.lcov.reportPaths` indica a SonarQube dónde leerlo. El valor de
+cobertura debe confirmarse en el análisis de la rama objetivo; generar el
+reporte por sí solo no significa que se cumpla el umbral.
 
 ## 7. Criterios de salida
 

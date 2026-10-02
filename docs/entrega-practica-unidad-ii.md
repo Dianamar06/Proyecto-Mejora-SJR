@@ -257,6 +257,13 @@ npm test
 No se ejecuta `npm test` desde la raíz del monorepo, porque allí no existe un
 `package.json`.
 
+### 6.3 Cobertura para SonarQube
+
+Desde `mejora-sjr-backend`, ejecutar `npm run test:coverage`. El comando vuelve
+a ejecutar los seis casos y genera `lcov.info` con el reporter integrado de
+Node. El archivo se ignora en Git y SonarQube lo lee desde la ruta configurada
+en [`sonar-project.properties`](../sonar-project.properties).
+
 ## 7. Quality Gate en SonarQube Cloud
 
 ### 7.1 Propósito
@@ -279,8 +286,10 @@ nueva.
 | Cobertura de código nuevo | >= 80 % |
 | Líneas duplicadas nuevas | <= 3 % |
 
-La cobertura requiere reportes LCOV; hasta que se generen y configuren, el
-criterio de cobertura no se puede considerar medido ni aprobado.
+El workflow genera un reporte LCOV nativo de Node y SonarQube está configurado
+para leerlo. El valor de cobertura y el cumplimiento del umbral se confirman en
+el análisis del PR; la existencia del reporte por sí sola no significa que se
+haya aprobado ese criterio.
 
 ### 7.3 Configuración técnica del análisis
 
@@ -298,24 +307,15 @@ ramas y ejecución manual.
 
 ### 7.4 Activación en las cuentas
 
-1. En SonarQube Cloud, importar el repositorio GitHub
-   `Dianamar06/Proyecto-Mejora-SJR`.
-2. Confirmar que la project key importada sea
-   `Dianamar06_Proyecto-Mejora-SJR` y anotar la organization key exacta.
-3. Crear un token de análisis en SonarQube Cloud.
-4. En GitHub, en `Settings > Secrets and variables > Actions > Secrets`, crear
-   el secret `SONAR_TOKEN` y pegar ahí el token. No incluirlo en código, chat,
-   capturas ni logs.
-5. En `Settings > Secrets and variables > Actions > Variables`, crear
-   `SONAR_ORGANIZATION` con la organization key copiada de SonarQube Cloud.
-6. En SonarQube Cloud, asignar al proyecto el Quality Gate descrito en la
-   sección 7.2.
-7. Publicar el workflow en GitHub y abrir `Actions > Tests and SonarQube Cloud`
-   para comprobar la ejecución y el estado final.
-
-La configuración de los archivos no crea el proyecto, no genera el token y no
-asigna por sí misma un Quality Gate. Hasta completar esos pasos y ejecutar el
-workflow, el estado del análisis es **pendiente**, no aprobado.
+El repositorio ya tiene configurados el secret `SONAR_TOKEN` y la variable
+`SONAR_ORGANIZATION` en GitHub Actions. El valor del token no se guarda en el
+código ni en esta documentación. El análisis del PR #4 hacia `main` pasó el
+gate predeterminado **Sonar way**, pero la página indicó que no había suficientes
+líneas nuevas para calcular cobertura. Ese resultado no confirma los umbrales
+propuestos ni representa un análisis del cambio dirigido a `sP3`. La ejecución
+del PR a `sP3` debe revisarse en Actions y en SonarQube Cloud. Las condiciones
+de la sección 7.2 siguen siendo una propuesta hasta crear y asignar un gate
+personalizado.
 
 ## 8. Pruebas para aplicaciones móviles
 
@@ -382,11 +382,12 @@ resultado, evidencia y defectos. Usar cuentas y datos ficticios.
 - Una ejecución directa de las pruebas móviles con el runner Node produjo
   errores al cargar módulos nativos de Expo/React Native. No se reporta el
   conjunto móvil como aprobado.
-- No se ha ejecutado un análisis real de SonarQube Cloud: faltan importar el
-  proyecto, configurar `SONAR_TOKEN` y `SONAR_ORGANIZATION` en GitHub y correr
-  el workflow.
-- No se genera actualmente un reporte LCOV, por lo que no existe medición de
-  cobertura para el umbral propuesto.
+- `npm run test:coverage` genera el reporte LCOV con Node y el workflow lo
+  entrega a SonarQube Cloud. En el análisis del PR #4 hacia `main`, Sonar way
+  pasó, pero la cobertura no pudo calcularse por falta de líneas nuevas; esa
+  ejecución no sustituye la verificación del PR dirigido a `sP3`.
+- El gate personalizado de la sección 7.2 aún debe configurarse y asignarse;
+  **Sonar way Passed** no demuestra que se cumplan todos esos umbrales.
 - Las pruebas de integración con SQL Server, API real, autenticación y
   almacenamiento en nube quedan pendientes de un ambiente aislado.
 
