@@ -264,6 +264,22 @@ a ejecutar los seis casos y genera `lcov.info` con el reporter integrado de
 Node. El archivo se ignora en Git y SonarQube lo lee desde la ruta configurada
 en [`sonar-project.properties`](../sonar-project.properties).
 
+### 6.4 Evidencia de ejecución
+
+La ejecución de [Tests and SonarQube Cloud para el PR #5 hacia `sP3`](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37024799917)
+pasó: los seis casos AAA, la verificación TypeScript móvil y el análisis
+SonarQube Cloud. SonarQube informó **Quality Gate: Passed** con el gate
+predeterminado **Sonar way**.
+
+![Quality Gate de SonarQube Cloud aprobado para el PR #5 hacia sP3](evidencias/quality-gate-passed-pr5.png)
+
+El PR contenía cambios de documentación y configuración, por lo que SonarQube
+reportó 0 líneas nuevas y no pudo calcular cobertura nueva. El scanner sí
+detectó el archivo LCOV, pero este resultado no demuestra que se cumpla el
+umbral de cobertura propuesto. La vista también advierte que el plan de
+SonarQube no incluye análisis de ramas; el estado mostrado corresponde al
+análisis de este pull request.
+
 ## 7. Quality Gate en SonarQube Cloud
 
 ### 7.1 Propósito
@@ -309,13 +325,10 @@ ramas y ejecución manual.
 
 El repositorio ya tiene configurados el secret `SONAR_TOKEN` y la variable
 `SONAR_ORGANIZATION` en GitHub Actions. El valor del token no se guarda en el
-código ni en esta documentación. El análisis del PR #4 hacia `main` pasó el
-gate predeterminado **Sonar way**, pero la página indicó que no había suficientes
-líneas nuevas para calcular cobertura. Ese resultado no confirma los umbrales
-propuestos ni representa un análisis del cambio dirigido a `sP3`. La ejecución
-del PR a `sP3` debe revisarse en Actions y en SonarQube Cloud. Las condiciones
-de la sección 7.2 siguen siendo una propuesta hasta crear y asignar un gate
-personalizado.
+código ni en esta documentación. El análisis del PR #5 hacia `sP3` pasó el gate
+predeterminado **Sonar way**; no hubo suficientes líneas nuevas para calcular
+cobertura. Las condiciones de la sección 7.2 siguen siendo una propuesta hasta
+crear y asignar un gate personalizado.
 
 ## 8. Pruebas para aplicaciones móviles
 
@@ -382,10 +395,10 @@ resultado, evidencia y defectos. Usar cuentas y datos ficticios.
 - Una ejecución directa de las pruebas móviles con el runner Node produjo
   errores al cargar módulos nativos de Expo/React Native. No se reporta el
   conjunto móvil como aprobado.
-- `npm run test:coverage` genera el reporte LCOV con Node y el workflow lo
-  entrega a SonarQube Cloud. En el análisis del PR #4 hacia `main`, Sonar way
-  pasó, pero la cobertura no pudo calcularse por falta de líneas nuevas; esa
-  ejecución no sustituye la verificación del PR dirigido a `sP3`.
+- La ejecución CI del PR #5 hacia `sP3` aprobó las seis pruebas, el chequeo
+  TypeScript móvil y el gate predeterminado **Sonar way**. Aunque SonarQube
+  leyó el LCOV, no calculó cobertura nueva porque el PR no tenía líneas nuevas
+  de código.
 - El gate personalizado de la sección 7.2 aún debe configurarse y asignarse;
   **Sonar way Passed** no demuestra que se cumplan todos esos umbrales.
 - Las pruebas de integración con SQL Server, API real, autenticación y

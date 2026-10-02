@@ -134,6 +134,14 @@ reporter integrado de Node. El workflow invoca el mismo comando, y
 cobertura debe confirmarse en el análisis de la rama objetivo; generar el
 reporte por sí solo no significa que se cumpla el umbral.
 
+La ejecución de [Tests and SonarQube Cloud para el PR #5 hacia `sP3`](https://github.com/Dianamar06/Proyecto-Mejora-SJR/actions/runs/37024799917)
+pasó las pruebas AAA, el chequeo TypeScript móvil y el Quality Gate
+predeterminado **Sonar way**. El scanner importó el reporte LCOV; sin embargo,
+el PR no tenía líneas nuevas de código y SonarQube no pudo calcular cobertura
+nueva. Por ello, no se considera demostrado el umbral de cobertura propuesto.
+
+![Quality Gate de SonarQube Cloud aprobado para el PR #5 hacia sP3](evidencias/quality-gate-passed-pr5.png)
+
 ## 7. Criterios de salida
 
 - Los casos automatizados pasan localmente (`npm test`).
