@@ -76,3 +76,39 @@ jobs:
           args: >
             -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
             -Dsonar.qualitygate.wait=true
+
+  notify-email-on-failure:
+    name: Notify by email on pipeline failure
+    if: ${{ always() && needs.test-and-analyze.result == 'failure' }}
+    needs: test-and-analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate email notification configuration
+        env:
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          CI_NOTIFICATION_EMAIL: ${{ vars.CI_NOTIFICATION_EMAIL }}
+        run: |
+          if [ -z "$GMAIL_USERNAME" ] || [ -z "$GMAIL_APP_PASSWORD" ] || [ -z "$CI_NOTIFICATION_EMAIL" ]; then
+            echo "::error::Configure GMAIL_USERNAME and GMAIL_APP_PASSWORD secrets and the CI_NOTIFICATION_EMAIL variable."
+            exit 1
+          fi
+
+      - name: Send failure notification by email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "CI pipeline failed: ${{ github.repository }} (${{ github.ref_name }})"
+          to: ${{ vars.CI_NOTIFICATION_EMAIL }}
+          from: "GitHub Actions CI <${{ secrets.GMAIL_USERNAME }}>"
+          body: |
+            The CI pipeline failed.
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
