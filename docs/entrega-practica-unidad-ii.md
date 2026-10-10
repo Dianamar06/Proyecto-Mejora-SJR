@@ -24,6 +24,8 @@
 5. [Casos de prueba con patrón AAA](#5-casos-de-prueba-con-patrón-aaa)
 6. [Automatización y ejecución de las pruebas API](#6-automatización-y-ejecución-de-las-pruebas-api)
 7. [Quality Gate en SonarQube Cloud](#7-quality-gate-en-sonarqube-cloud)
+   - [Notificación de fallos por correo](#75-notificación-de-fallos-por-correo)
+   - [Evidencia de entrega](#76-evidencia-de-entrega)
 8. [Pruebas para aplicaciones móviles](#8-pruebas-para-aplicaciones-móviles)
 9. [Herramientas seleccionadas](#9-herramientas-seleccionadas)
 10. [Casos de aceptación móvil](#10-casos-de-aceptación-móvil)
@@ -329,6 +331,35 @@ código ni en esta documentación. El análisis del PR #5 hacia `sP3` pasó el g
 predeterminado **Sonar way**; no hubo suficientes líneas nuevas para calcular
 cobertura. Las condiciones de la sección 7.2 siguen siendo una propuesta hasta
 crear y asignar un gate personalizado.
+
+### 7.5 Notificación de fallos por correo
+
+El workflow incluye el job `notify-email-on-failure`, que envía un correo si
+falla el job de pruebas y análisis, incluido el Quality Gate de SonarQube Cloud.
+Para usar Gmail SMTP:
+
+1. Activar la verificación en dos pasos de la cuenta de Google y generar una
+   contraseña de aplicación para GitHub Actions. No usar la contraseña normal
+   de Gmail.
+2. En GitHub, abrir **Settings > Secrets and variables > Actions**.
+3. Crear los repository secrets `GMAIL_USERNAME` (la cuenta Gmail emisora) y
+   `GMAIL_APP_PASSWORD` (la contraseña de aplicación).
+4. En la pestaña **Variables**, crear `CI_NOTIFICATION_EMAIL` con la dirección
+   que recibirá las alertas.
+5. Provocar o esperar una ejecución fallida y comprobar en el correo el aviso
+   con la rama, el commit y el enlace a la ejecución.
+
+Las credenciales no se guardan en el repositorio. GitHub no expone secrets en
+ejecuciones de pull requests desde forks, así que esas ejecuciones no pueden
+enviar el correo.
+
+### 7.6 Evidencia de entrega
+
+- Repositorio: [Dianamar06/Proyecto-Mejora-SJR](https://github.com/Dianamar06/Proyecto-Mejora-SJR).
+- Video corto: agregar el enlace del video publicado al entregar la práctica.
+  Se recomienda mostrar el workflow en GitHub Actions, el resultado del análisis
+  y Quality Gate de SonarQube Cloud, una ejecución fallida y el correo recibido.
+  No mostrar credenciales ni contraseñas de aplicación.
 
 ## 8. Pruebas para aplicaciones móviles
 
